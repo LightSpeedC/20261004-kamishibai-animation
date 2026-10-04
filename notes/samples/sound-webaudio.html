@@ -1,0 +1,246 @@
+﻿<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<title>サンプル: Web Audio API の効果音と BGM</title>
+<style>
+:root {
+	--navy1: #12224d;
+	--navy2: #2f5fbf;
+	--ink: #1c2330;
+	--ink-soft: #4a5568;
+	--line: #d9dfe8;
+	--code-bg: #f4f6fa;
+	--accent: #12224d;
+	--accent2: #2f5fbf;
+	--soft: #f2f5fb;
+}
+* { box-sizing: border-box; }
+body {
+	margin: 0;
+	background: #fff;
+	color: var(--ink, #1c2330);
+	font-family: "Segoe UI", "Hiragino Kaku Gothic ProN", Meiryo, sans-serif;
+	font-size: 15.5px;
+	line-height: 1.85;
+}
+.titlebar {
+	background: linear-gradient(135deg, var(--navy1, #12224d), var(--navy2, #2f5fbf));
+	color: #fff;
+	padding: 34px 30px 30px;
+}
+.titlebar .inner { max-width: 1600px; margin: 0 auto; }
+.titlebar h1 { margin: 0 0 8px; font-size: 1.9em; color: #fff; }
+.titlebar .date { font-size: 0.85em; opacity: 0.85; }
+.wrap { max-width: 1600px; margin: 0 auto; padding: 0 30px; }
+a.back {
+	display: inline-block;
+	margin: 20px 0 0;
+	padding: 2px 12px;
+	border-radius: 6px;
+	background: linear-gradient(100deg, var(--navy1, #12224d), var(--navy2, #2f5fbf));
+	color: #fff;
+	text-decoration: none;
+	font-weight: 700;
+}
+h2 {
+	border-left: 6px solid var(--accent, #12224d);
+	background: linear-gradient(90deg, var(--soft, #f2f5fb), #fff);
+	color: var(--ink, #1c2330);
+	padding: 6px 12px;
+	margin: 30px 0 12px;
+	font-size: 1.2em;
+}
+.buttons { display: flex; flex-wrap: wrap; gap: 10px; }
+button {
+	font: inherit;
+	font-weight: 700;
+	padding: 8px 20px;
+	border: none;
+	border-radius: 6px;
+	background: linear-gradient(100deg, var(--accent, #12224d), var(--accent2, #2f5fbf));
+	color: #fff;
+	cursor: pointer;
+	box-shadow: 0 2px 6px rgba(0,0,0,0.15);
+}
+button:active { transform: translateY(1px); }
+code {
+	background: var(--code-bg, #f4f6fa);
+	border: 1px solid var(--line, #d9dfe8);
+	color: #17335f;
+	padding: 1px 5px;
+	border-radius: 3px;
+	font-size: 0.92em;
+}
+footer {
+	max-width: 1600px;
+	margin: 0 auto;
+	padding: 18px 30px 30px;
+	color: var(--ink-soft, #4a5568);
+	background: #fff;
+}
+</style>
+</head>
+<body>
+<div class="titlebar">
+	<div class="inner">
+		<h1>サンプル: Web Audio API の効果音と BGM</h1>
+		<div class="date">📅 作成: 2026-10-04 / 更新: 2026-10-04</div>
+	</div>
+</div>
+<div class="wrap">
+	<a class="back" href="../../README.html">⌂</a>
+
+	<p>ブラウザの Web Audio API で、波形をその場で計算して鳴らす。音声ファイルは使わない。ブラウザは操作なしに音を出せないため、ボタンを押して鳴らす。</p>
+
+	<h2>効果音</h2>
+	<div class="buttons">
+		<button id="btn-pyun">ピュン</button>
+		<button id="btn-pirorin">ピロリン</button>
+		<button id="btn-dokaan">ドカーン</button>
+	</div>
+	<ul>
+		<li>ピュン: 矩形波の高さを 1400 Hz から 200 Hz へ下げる</li>
+		<li>ピロリン: ド・ミ・ソ（高い音域）を少しずつずらして鳴らす</li>
+		<li>ドカーン: ノイズを、高い音を削るフィルターに通し、だんだん小さくする</li>
+	</ul>
+
+	<h2>BGM</h2>
+	<div class="buttons">
+		<button id="btn-bgm-start">再生</button>
+		<button id="btn-bgm-stop">停止</button>
+	</div>
+	<ul>
+		<li>曲は「かえるの合唱」（ドイツ民謡）。メロディは矩形波、低音は三角波で、終わると頭から繰り返す</li>
+		<li>音の高さは、ラ（440 Hz）から半音 n 個離れた音を <code>440 × 2^(n/12)</code> で出す</li>
+	</ul>
+</div>
+<footer>
+	<a class="back" href="../../README.html">⌂</a>
+</footer>
+
+<script>
+let ctx = null;
+
+// 最初のボタン操作で AudioContext を作る（操作前は音を出せないため）
+function audio() {
+	if (!ctx) ctx = new AudioContext();
+	if (ctx.state === 'suspended') ctx.resume();
+	return ctx;
+}
+
+// ラ（A4 = 440 Hz）から半音 n 個離れた音の周波数
+function freq(n) {
+	return 440 * Math.pow(2, n / 12);
+}
+
+// 1 音を鳴らす。from から to へ高さを変え、出だしと終わりの大きさをなだらかにする
+function tone({ type = 'square', from, to = from, start = 0, dur, vol = 0.15 }) {
+	const c = audio();
+	const t0 = c.currentTime + start;
+	const osc = c.createOscillator();
+	const gain = c.createGain();
+	osc.type = type;
+	osc.frequency.setValueAtTime(from, t0);
+	if (to !== from) osc.frequency.exponentialRampToValueAtTime(to, t0 + dur);
+	gain.gain.setValueAtTime(0, t0);
+	gain.gain.linearRampToValueAtTime(vol, t0 + 0.01);
+	gain.gain.exponentialRampToValueAtTime(0.001, t0 + dur);
+	osc.connect(gain).connect(c.destination);
+	osc.start(t0);
+	osc.stop(t0 + dur + 0.05);
+	return osc;
+}
+
+function pyun() {
+	tone({ type: 'square', from: 1400, to: 200, dur: 0.35 });
+}
+
+function pirorin() {
+	// C6・E6・G6（ラから半音 15・19・22 個上）
+	[15, 19, 22].forEach((n, i) => {
+		tone({ type: 'triangle', from: freq(n), start: i * 0.09, dur: 0.25, vol: 0.25 });
+	});
+}
+
+function dokaan() {
+	const c = audio();
+	const t0 = c.currentTime;
+	const dur = 1.5;
+	// ノイズ: 乱数を並べた波形
+	const len = Math.floor(c.sampleRate * dur);
+	const buf = c.createBuffer(1, len, c.sampleRate);
+	const data = buf.getChannelData(0);
+	for (let i = 0; i < len; i++) data[i] = Math.random() * 2 - 1;
+	const src = c.createBufferSource();
+	src.buffer = buf;
+	// 高い音を削るフィルター。削る境目を下げていき、こもった響きにする
+	const filter = c.createBiquadFilter();
+	filter.type = 'lowpass';
+	filter.frequency.setValueAtTime(3000, t0);
+	filter.frequency.exponentialRampToValueAtTime(80, t0 + dur);
+	const gain = c.createGain();
+	gain.gain.setValueAtTime(0.8, t0);
+	gain.gain.exponentialRampToValueAtTime(0.001, t0 + dur);
+	src.connect(filter).connect(gain).connect(c.destination);
+	src.start(t0);
+}
+
+// かえるの合唱: [ラからの半音数（null は休み）, 拍数]
+const C4 = -9, D4 = -7, E4 = -5, F4 = -4, G4 = -2, A4 = 0;
+const melody = [
+	[C4, 1], [D4, 1], [E4, 1], [F4, 1], [E4, 1], [D4, 1], [C4, 2],
+	[E4, 1], [F4, 1], [G4, 1], [A4, 1], [G4, 1], [F4, 1], [E4, 2],
+	[C4, 1], [null, 1], [C4, 1], [null, 1], [C4, 1], [null, 1], [C4, 1], [null, 1],
+	[C4, 0.5], [C4, 0.5], [D4, 0.5], [D4, 0.5], [E4, 0.5], [E4, 0.5], [F4, 0.5], [F4, 0.5],
+	[E4, 1], [D4, 1], [C4, 2],
+];
+// 低音: 2 拍ごとに C3 と G2 を交互に鳴らす
+const C3 = -21, G2 = -26;
+const BEAT = 0.4;	// 1 拍の秒数
+
+let bgmNodes = [];
+let bgmTimer = null;
+
+function scheduleBgm() {
+	let t = 0;
+	for (const [n, beats] of melody) {
+		if (n !== null) {
+			bgmNodes.push(tone({ type: 'square', from: freq(n), start: t, dur: beats * BEAT * 0.9, vol: 0.08 }));
+		}
+		t += beats * BEAT;
+	}
+	for (let b = 0; b * 2 * BEAT < t; b++) {
+		const n = b % 2 === 0 ? C3 : G2;
+		bgmNodes.push(tone({ type: 'triangle', from: freq(n), start: b * 2 * BEAT, dur: 2 * BEAT * 0.9, vol: 0.2 }));
+	}
+	// 曲の終わりで、次の 1 回分を組み直す
+	bgmTimer = setTimeout(() => {
+		bgmNodes = [];
+		scheduleBgm();
+	}, t * 1000);
+}
+
+function startBgm() {
+	if (bgmTimer !== null) return;
+	audio();
+	scheduleBgm();
+}
+
+function stopBgm() {
+	clearTimeout(bgmTimer);
+	bgmTimer = null;
+	for (const osc of bgmNodes) {
+		try { osc.stop(); } catch (e) { /* 鳴り終わった音は止められない */ }
+	}
+	bgmNodes = [];
+}
+
+document.getElementById('btn-pyun').addEventListener('click', pyun);
+document.getElementById('btn-pirorin').addEventListener('click', pirorin);
+document.getElementById('btn-dokaan').addEventListener('click', dokaan);
+document.getElementById('btn-bgm-start').addEventListener('click', startBgm);
+document.getElementById('btn-bgm-stop').addEventListener('click', stopBgm);
+</script>
+</body>
+</html>
