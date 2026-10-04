@@ -1,0 +1,302 @@
+﻿<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<title>計画: Web 紙芝居「桃太郎」の冒頭</title>
+<style>
+:root {
+	--navy1: #12224d;
+	--navy2: #2f5fbf;
+	--ink: #1c2330;
+	--ink-soft: #4a5568;
+	--line: #d9dfe8;
+	--code-bg: #f4f6fa;
+	--link: #1a4fa0;
+	--accent: #12224d;
+	--accent2: #2f5fbf;
+	--soft: #f2f5fb;
+}
+.ch01 { --accent: hsl(280, 78%, 25%); --accent2: hsl(280, 58%, 55%); --soft: hsl(280, 28%, 95%); }
+.ch02 { --accent: hsl(224, 78%, 25%); --accent2: hsl(224, 58%, 55%); --soft: hsl(224, 28%, 95%); }
+.ch03 { --accent: hsl(168, 78%, 25%); --accent2: hsl(168, 58%, 55%); --soft: hsl(168, 28%, 95%); }
+.ch04 { --accent: hsl(112, 78%, 25%); --accent2: hsl(112, 58%, 55%); --soft: hsl(112, 28%, 95%); }
+.ch05 { --accent: hsl(56, 78%, 25%); --accent2: hsl(56, 58%, 55%); --soft: hsl(56, 28%, 95%); }
+.ch06 { --accent: hsl(0, 78%, 25%); --accent2: hsl(0, 58%, 55%); --soft: hsl(0, 28%, 95%); }
+* { box-sizing: border-box; }
+body {
+	margin: 0;
+	background: #fff;
+	color: var(--ink, #1c2330);
+	font-family: "Segoe UI", "Hiragino Kaku Gothic ProN", Meiryo, sans-serif;
+	font-size: 15.5px;
+	line-height: 1.85;
+}
+.titlebar {
+	background: linear-gradient(135deg, var(--navy1, #12224d), var(--navy2, #2f5fbf));
+	color: #fff;
+	padding: 34px 30px 30px;
+}
+.titlebar .inner { max-width: 1600px; margin: 0 auto; }
+.titlebar h1 { margin: 0 0 8px; font-size: 1.9em; color: #fff; }
+.titlebar .date { font-size: 0.85em; opacity: 0.85; }
+.wrap { max-width: 1600px; margin: 0 auto; padding: 0 30px; }
+a { color: var(--link, #1a4fa0); background: transparent; }
+a.back {
+	display: inline-block;
+	margin: 20px 0 0;
+	padding: 2px 12px;
+	border-radius: 6px;
+	background: linear-gradient(100deg, var(--navy1, #12224d), var(--navy2, #2f5fbf));
+	color: #fff;
+	text-decoration: none;
+	font-weight: 700;
+}
+.toc ol {
+	counter-reset: tocnum;
+	list-style: none;
+	padding: 0;
+	margin: 20px 0 0;
+	display: flex;
+	flex-wrap: wrap;
+	gap: 8px;
+}
+.toc ol li { counter-increment: tocnum; }
+.toc ol li a {
+	display: -webkit-box;
+	-webkit-box-orient: vertical;
+	-webkit-line-clamp: 2;
+	overflow: hidden;
+	text-overflow: ellipsis;
+	white-space: normal;
+	width: 310px;
+	max-width: 100%;
+	padding: 6px 12px;
+	border-radius: 6px;
+	background: linear-gradient(100deg, var(--accent, #12224d), var(--accent2, #2f5fbf));
+	color: #fff;
+	text-decoration: none;
+	font-weight: 700;
+}
+.toc ol li a::before { content: counter(tocnum) ". "; }
+section {
+	background: linear-gradient(180deg, var(--soft, #f2f5fb), #fff);
+	color: var(--ink, #1c2330);
+	padding: 4px 26px 26px;
+	margin: 34px 0;
+	border-radius: 8px;
+}
+section h1 {
+	background: linear-gradient(100deg, var(--accent, #12224d), var(--accent2, #2f5fbf));
+	color: #fff;
+	padding: 14px 20px;
+	margin: 26px 0 20px;
+	border-radius: 8px;
+	box-shadow: 0 3px 10px rgba(0,0,0,0.18);
+	font-size: 1.45em;
+}
+section h2 {
+	border-left: 6px solid var(--accent, #12224d);
+	background: linear-gradient(90deg, var(--soft, #f2f5fb), #fff);
+	color: var(--ink, #1c2330);
+	padding: 6px 12px;
+	margin: 30px 0 12px;
+	font-size: 1.2em;
+}
+code {
+	background: var(--code-bg, #f4f6fa);
+	border: 1px solid var(--line, #d9dfe8);
+	color: #17335f;
+	padding: 1px 5px;
+	border-radius: 3px;
+	font-size: 0.92em;
+}
+.tablewrap { overflow-x: auto; }
+table {
+	border-collapse: collapse;
+	width: 100%;
+	border-radius: 8px;
+	overflow: hidden;
+	box-shadow: 0 1px 4px rgba(0,0,0,0.08);
+	font-size: 0.95em;
+}
+th, td {
+	padding: 9px 12px;
+	border-bottom: 1px solid var(--line, #d9dfe8);
+	text-align: left;
+	vertical-align: top;
+}
+th {
+	background: linear-gradient(100deg, var(--accent, #12224d), var(--accent2, #2f5fbf));
+	color: #fff;
+}
+td { background: #fff; color: var(--ink, #1c2330); }
+tr:nth-child(even) td { background: #fafbfe; color: var(--ink, #1c2330); }
+td.nowrap { white-space: nowrap; }
+td.num { text-align: right; white-space: nowrap; }
+.callout {
+	border-left: 6px solid var(--accent, #12224d);
+	background: linear-gradient(180deg, var(--soft, #f2f5fb), #fff);
+	color: var(--ink, #1c2330);
+	border-radius: 0 8px 8px 0;
+	padding: 10px 16px;
+	margin: 16px 0;
+}
+.callout strong { color: var(--accent, #12224d); background: transparent; }
+footer {
+	max-width: 1600px;
+	margin: 0 auto;
+	padding: 18px 30px 30px;
+	color: var(--ink-soft, #4a5568);
+	background: #fff;
+}
+</style>
+</head>
+<body>
+<div class="titlebar">
+	<div class="inner">
+		<h1>計画: Web 紙芝居「桃太郎」の冒頭</h1>
+		<div class="date">📅 作成: 2026-10-04 / 更新: 2026-10-04</div>
+	</div>
+</div>
+<div class="wrap">
+	<a class="back" href="../../README.html">⌂</a>
+
+	<nav class="toc">
+		<ol>
+			<li class="ch01"><a href="#ch01">目的</a></li>
+			<li class="ch02"><a href="#ch02">台本</a></li>
+			<li class="ch03"><a href="#ch03">画面と操作</a></li>
+			<li class="ch04"><a href="#ch04">音と読み上げ</a></li>
+			<li class="ch05"><a href="#ch05">成果物と進め方</a></li>
+			<li class="ch06"><a href="#ch06">決めること</a></li>
+		</ol>
+	</nav>
+
+	<section class="ch01" id="ch01">
+		<h1>目的</h1>
+		<p>「桃太郎」の冒頭（桃から生まれて名付けられるまで）を、ブラウザで動く紙芝居「桃太郎（冒頭）」にする。絵・字幕・効果音・読み上げ音声をそろえる。</p>
+		<p>音はすべてブラウザの中で作る。効果音と BGM は Web Audio API、読み上げは Web Speech API を使う。音声ファイル・画像ファイル・外部サービスは使わない。</p>
+		<div class="callout">
+			<strong>計画 p261004-01 との関係</strong>: p261004-01 の段階 1・2 を、この計画で置き換える。p261004-01 で範囲外にしていた BGM・効果音を含め、読み上げは wav ではなくブラウザで行う。承認後、p261004-01 にこの計画へのリンクと変更点を書く。動画化（段階 3）は p261004-01 のまま残す。
+		</div>
+	</section>
+
+	<section class="ch02" id="ch02">
+		<h1>台本</h1>
+		<p>昔話のため著作権の制約はない。文は自分で書く。5 場面。</p>
+		<div class="tablewrap">
+		<table>
+			<thead>
+				<tr><th>場面</th><th>絵</th><th>ナレーション</th><th>音</th></tr>
+			</thead>
+			<tbody>
+				<tr><td class="num">1</td><td>山あいの家と、おじいさん・おばあさん</td><td>むかしむかし、ある所に、おじいさんとおばあさんが住んでいました。</td><td>拍子木（始まり）・BGM 開始</td></tr>
+				<tr><td class="num">2</td><td>山へ向かうおじいさん、川へ向かうおばあさん</td><td>おじいさんは山へしばかりに、おばあさんは川へせんたくに行きました。</td><td>鳥の声</td></tr>
+				<tr><td class="num">3</td><td>川で洗濯するおばあさん。上流から大きな桃が揺れながら流れてくる</td><td>おばあさんが川でせんたくをしていると、川上から大きな桃が、どんぶらこ、どんぶらこと流れてきました。</td><td>川の水音・どんぶらこの揺れに合わせた音</td></tr>
+				<tr><td class="num">4</td><td>家で桃を切ろうとすると、桃が割れて赤ちゃんが出てくる</td><td>おばあさんは桃を家に持ち帰りました。おじいさんが包丁で切ろうとすると、桃がぱかっと割れて、中から元気な男の赤ちゃんが生まれました。</td><td>ぱかっ（割れる音）・きらきら</td></tr>
+				<tr><td class="num">5</td><td>赤ちゃんを抱く二人</td><td>桃から生まれたので、二人はこの子を「桃太郎」と名づけました。</td><td>拍子木（終わり）・BGM 終了</td></tr>
+			</tbody>
+		</table>
+		</div>
+		<p>台本は HTML の中に JavaScript の配列として持つ。<code>script.json</code> に分けると、ファイルを直接開いたとき（<code>file://</code>）に読み込めないため。</p>
+	</section>
+
+	<section class="ch03" id="ch03">
+		<h1>画面と操作</h1>
+		<h2>画面</h2>
+		<ul>
+			<li>紙芝居の枠（木の舞台風）の中に、場面の絵を SVG で描く。横長 16:9</li>
+			<li>絵の下に字幕。読み上げ中の文を表示する</li>
+			<li>場面の切り替えは、紙を横へ引き抜く動き（紙芝居の「抜き」）にする</li>
+			<li>場面内の動き: 桃が上下に揺れながら流れる（場面 3）、桃が左右に割れる（場面 4）など、CSS アニメーションで付ける</li>
+		</ul>
+		<h2>操作</h2>
+		<ul>
+			<li>最初に「はじまり」ボタンを押す。ブラウザは操作なしに音を出せないため、これが必須</li>
+			<li>自動送り: 読み上げが終わったら、少し間を置いて次の場面へ</li>
+			<li>手動送り: クリック・矢印キーで前後に移る。移ったら読み上げを止めて、その場面を読み直す</li>
+			<li>音・読み上げのオン/オフを切り替えるボタン（字幕だけで読めるように）</li>
+		</ul>
+	</section>
+
+	<section class="ch04" id="ch04">
+		<h1>音と読み上げ</h1>
+		<h2>効果音と BGM（Web Audio API）</h2>
+		<ul>
+			<li>サンプル <code>notes/samples/sound-webaudio.html</code> の作り方（波形をその場で計算）を使う</li>
+			<li>拍子木: 短く高い音を 2 回。鳥の声: 高さを素早く上下させる音。水音: ノイズをフィルターに通して揺らす。ぱかっ: 短いノイズ。きらきら: 高い音の連続</li>
+			<li>BGM: 和風に聞こえるよう、ペンタトニック（ド・レ・ミ・ソ・ラ）の短い旋律を繰り返す。読み上げ中は音量を下げる</li>
+		</ul>
+		<h2>読み上げ（Web Speech API）</h2>
+		<ul>
+			<li>サンプル <code>notes/samples/speech-webspeech.html</code> の作り方を使う</li>
+			<li>日本語で、PC の中で動く声（<code>localService</code> が true）を優先して選ぶ。無ければネットの声を使い、それも無ければ字幕だけで進める</li>
+			<li>読み上げの終わり（<code>onend</code>）で次の場面へ送る</li>
+			<li>読んでいる文字に色を付ける（<code>onboundary</code>）。この PC のブラウザで位置が届くかは未確認。届かなければ文単位の表示にする</li>
+		</ul>
+		<div class="callout">
+			<strong>読みの誤り</strong>: 音声合成は「川上」「包丁」などを読み違えることがある。その場合は、読み上げる文だけをひらがなにする（字幕は漢字のまま）。台本には字幕用と読み用の 2 つの欄を持たせる。
+		</div>
+	</section>
+
+	<section class="ch05" id="ch05">
+		<h1>成果物と進め方</h1>
+		<div class="tablewrap">
+		<table>
+			<thead>
+				<tr><th>成果物</th><th>置き場</th><th>内容</th></tr>
+			</thead>
+			<tbody>
+				<tr><td>共通の仕組み</td><td class="nowrap"><code>src/engine/</code></td><td>舞台・送り・効果音・読み上げ。2 作目以降も使う</td></tr>
+				<tr><td>桃太郎（冒頭）</td><td class="nowrap"><code>src/works/01-momotaro/</code></td><td><code>index.html</code> と <code>story.js</code>（台本・SVG・音の指定）。ダブルクリックで開ける</td></tr>
+				<tr><td>作品一覧</td><td class="nowrap"><code>src/index.html</code></td><td>作品へのリンク</td></tr>
+			</tbody>
+		</table>
+		</div>
+		<p>置き場の決め方と公開の方法は、<a href="p261004-01-kamishibai-animation.html#ch06">p261004-01「作品の置き場と公開」</a>に従う。</p>
+		<p>段階ごとに利用者の確認を取ってから次へ進む。</p>
+		<h2>段階 1: 絵と字幕</h2>
+		<ul>
+			<li>5 場面の SVG、字幕、場面の切り替え、手動送り</li>
+		</ul>
+		<h2>段階 2: 読み上げ</h2>
+		<ul>
+			<li>「はじまり」ボタン、読み上げ、読み終わりでの自動送り、読み違いの直し</li>
+		</ul>
+		<h2>段階 3: 効果音と BGM</h2>
+		<ul>
+			<li>場面ごとの効果音、BGM、読み上げ中の音量下げ、オン/オフ</li>
+		</ul>
+		<p>確認は Chrome と Edge で行う。PlayWright 共有環境で各場面のスクリーンショットを撮り、絵の崩れを見る。音は利用者が聞いて確かめる。</p>
+	</section>
+
+	<section class="ch06" id="ch06">
+		<h1>決めること</h1>
+		<p>実装前に決めてほしい点。推奨は A。</p>
+		<ul>
+			<li><strong>1. 範囲</strong>
+				<ul>
+					<li>1-A: 名づけまで（5 場面）。冒頭として切りがよい</li>
+					<li>1-B: 鬼退治に出発するまで（7〜8 場面）</li>
+				</ul>
+			</li>
+			<li><strong>2. 読み上げ</strong>
+				<ul>
+					<li>2-A: Web Speech API。ブラウザだけで完結し、台本を直せばすぐ反映される。声はブラウザ・PC によって変わる</li>
+					<li>2-B: Windows の音声合成で wav を作り、HTML で再生する。声は固定できるが、台本を直すたびに作り直しが要る</li>
+				</ul>
+			</li>
+			<li><strong>3. 絵の調子</strong>
+				<ul>
+					<li>3-A: 太い輪郭と平塗りの、紙芝居らしい単純な絵</li>
+					<li>3-B: 影・グラデーションを付けた絵本風。手間が倍ほどかかる</li>
+				</ul>
+			</li>
+		</ul>
+	</section>
+</div>
+<footer>
+	<a class="back" href="../../README.html">⌂</a>
+</footer>
+</body>
+</html>

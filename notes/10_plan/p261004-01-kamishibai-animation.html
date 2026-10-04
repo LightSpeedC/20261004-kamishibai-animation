@@ -1,0 +1,464 @@
+﻿<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<title>計画: 紙芝居アニメの試作（外部サービス不使用）</title>
+<style>
+:root {
+	--navy1: #12224d;
+	--navy2: #2f5fbf;
+	--ink: #1c2330;
+	--ink-soft: #4a5568;
+	--line: #d9dfe8;
+	--code-bg: #f4f6fa;
+	--link: #1a4fa0;
+	--accent: #12224d;
+	--accent2: #2f5fbf;
+	--soft: #f2f5fb;
+}
+.ch01 { --accent: hsl(280, 78%, 25%); --accent2: hsl(280, 58%, 55%); --soft: hsl(280, 28%, 95%); }
+.ch02 { --accent: hsl(233.3, 78%, 25%); --accent2: hsl(233.3, 58%, 55%); --soft: hsl(233.3, 28%, 95%); }
+.ch03 { --accent: hsl(186.7, 78%, 25%); --accent2: hsl(186.7, 58%, 55%); --soft: hsl(186.7, 28%, 95%); }
+.ch04 { --accent: hsl(140, 78%, 25%); --accent2: hsl(140, 58%, 55%); --soft: hsl(140, 28%, 95%); }
+.ch05 { --accent: hsl(93.3, 78%, 25%); --accent2: hsl(93.3, 58%, 55%); --soft: hsl(93.3, 28%, 95%); }
+.ch06 { --accent: hsl(46.7, 78%, 25%); --accent2: hsl(46.7, 58%, 55%); --soft: hsl(46.7, 28%, 95%); }
+.ch07 { --accent: hsl(0, 78%, 25%); --accent2: hsl(0, 58%, 55%); --soft: hsl(0, 28%, 95%); }
+* { box-sizing: border-box; }
+body {
+	margin: 0;
+	background: #fff;
+	color: var(--ink, #1c2330);
+	font-family: "Segoe UI", "Hiragino Kaku Gothic ProN", Meiryo, sans-serif;
+	font-size: 15.5px;
+	line-height: 1.85;
+}
+.titlebar {
+	background: linear-gradient(135deg, var(--navy1, #12224d), var(--navy2, #2f5fbf));
+	color: #fff;
+	padding: 34px 30px 30px;
+}
+.titlebar .inner { max-width: 1600px; margin: 0 auto; }
+.titlebar h1 { margin: 0 0 8px; font-size: 1.9em; color: #fff; }
+.titlebar .date { font-size: 0.85em; opacity: 0.85; }
+.wrap { max-width: 1600px; margin: 0 auto; padding: 0 30px; }
+a { color: var(--link, #1a4fa0); background: transparent; }
+a.back {
+	display: inline-block;
+	margin: 20px 0 0;
+	padding: 2px 12px;
+	border-radius: 6px;
+	background: linear-gradient(100deg, var(--navy1, #12224d), var(--navy2, #2f5fbf));
+	color: #fff;
+	text-decoration: none;
+	font-weight: 700;
+}
+.toc ol {
+	counter-reset: tocnum;
+	list-style: none;
+	padding: 0;
+	margin: 20px 0 0;
+	display: flex;
+	flex-wrap: wrap;
+	gap: 8px;
+}
+.toc ol li { counter-increment: tocnum; }
+.toc ol li a {
+	display: -webkit-box;
+	-webkit-box-orient: vertical;
+	-webkit-line-clamp: 2;
+	overflow: hidden;
+	text-overflow: ellipsis;
+	white-space: normal;
+	width: 310px;
+	max-width: 100%;
+	padding: 6px 12px;
+	border-radius: 6px;
+	background: linear-gradient(100deg, var(--accent, #12224d), var(--accent2, #2f5fbf));
+	color: #fff;
+	text-decoration: none;
+	font-weight: 700;
+}
+.toc ol li a::before { content: counter(tocnum) ". "; }
+section {
+	background: linear-gradient(180deg, var(--soft, #f2f5fb), #fff);
+	color: var(--ink, #1c2330);
+	padding: 4px 26px 26px;
+	margin: 34px 0;
+	border-radius: 8px;
+}
+section h1 {
+	background: linear-gradient(100deg, var(--accent, #12224d), var(--accent2, #2f5fbf));
+	color: #fff;
+	padding: 14px 20px;
+	margin: 26px 0 20px;
+	border-radius: 8px;
+	box-shadow: 0 3px 10px rgba(0,0,0,0.18);
+	font-size: 1.45em;
+}
+section h2 {
+	border-left: 6px solid var(--accent, #12224d);
+	background: linear-gradient(90deg, var(--soft, #f2f5fb), #fff);
+	color: var(--ink, #1c2330);
+	padding: 6px 12px;
+	margin: 30px 0 12px;
+	font-size: 1.2em;
+}
+code {
+	background: var(--code-bg, #f4f6fa);
+	border: 1px solid var(--line, #d9dfe8);
+	color: #17335f;
+	padding: 1px 5px;
+	border-radius: 3px;
+	font-size: 0.92em;
+}
+section h3 {
+	display: inline-block;
+	border-bottom: 2px dotted var(--accent2, #2f5fbf);
+	padding-bottom: 3px;
+	margin: 20px 0 8px;
+	font-size: 1.05em;
+}
+pre {
+	background: linear-gradient(180deg, var(--code-bg, #f4f6fa), #fff);
+	color: #17335f;
+	border-left: 5px solid var(--accent2, #2f5fbf);
+	border-radius: 0 6px 6px 0;
+	padding: 13px 16px;
+	overflow-x: auto;
+	line-height: 1.55;
+}
+pre code { background: transparent; border: none; padding: 0; color: #17335f; font-size: 0.9em; }
+.tablewrap { overflow-x: auto; }
+table {
+	border-collapse: collapse;
+	width: 100%;
+	border-radius: 8px;
+	overflow: hidden;
+	box-shadow: 0 1px 4px rgba(0,0,0,0.08);
+	font-size: 0.95em;
+}
+th, td {
+	padding: 9px 12px;
+	border-bottom: 1px solid var(--line, #d9dfe8);
+	text-align: left;
+	vertical-align: top;
+}
+th {
+	background: linear-gradient(100deg, var(--accent, #12224d), var(--accent2, #2f5fbf));
+	color: #fff;
+}
+td { background: #fff; color: var(--ink, #1c2330); }
+tr:nth-child(even) td { background: #fafbfe; color: var(--ink, #1c2330); }
+td.nowrap { white-space: nowrap; }
+.callout {
+	border-left: 6px solid var(--accent, #12224d);
+	background: linear-gradient(180deg, var(--soft, #f2f5fb), #fff);
+	color: var(--ink, #1c2330);
+	border-radius: 0 8px 8px 0;
+	padding: 10px 16px;
+	margin: 16px 0;
+}
+.callout strong { color: var(--accent, #12224d); background: transparent; }
+footer {
+	max-width: 1600px;
+	margin: 0 auto;
+	padding: 18px 30px 30px;
+	color: var(--ink-soft, #4a5568);
+	background: #fff;
+}
+</style>
+</head>
+<body>
+<div class="titlebar">
+	<div class="inner">
+		<h1>計画: 紙芝居アニメの試作（外部サービス不使用）</h1>
+		<div class="date">📅 作成: 2026-10-04 / 更新: 2026-10-04</div>
+	</div>
+</div>
+<div class="wrap">
+	<a class="back" href="../../README.html">⌂</a>
+
+	<nav class="toc">
+		<ol>
+			<li class="ch01"><a href="#ch01">目的</a></li>
+			<li class="ch02"><a href="#ch02">成果物</a></li>
+			<li class="ch03"><a href="#ch03">進め方</a></li>
+			<li class="ch04"><a href="#ch04">着手前に確かめる前提</a></li>
+			<li class="ch05"><a href="#ch05">サンプル</a></li>
+			<li class="ch06"><a href="#ch06">作品の置き場と公開</a></li>
+			<li class="ch07"><a href="#ch07">範囲外</a></li>
+		</ol>
+	</nav>
+
+	<section class="ch01" id="ch01">
+		<h1>目的</h1>
+		<p>Claude Code と手元のツールだけで、絵・動き・音声のついた紙芝居を作れるかを確かめる。クラウドの画像生成・音声合成など、外部サービスは使わない。</p>
+		<p>規模は 3 場面に絞る。作り方が成り立つかを見るための試作であり、作品の出来は問わない。</p>
+	</section>
+
+	<section class="ch02" id="ch02">
+		<h1>成果物</h1>
+		<div class="tablewrap">
+		<table>
+			<thead>
+				<tr><th>成果物</th><th>置き場</th><th>内容</th></tr>
+			</thead>
+			<tbody>
+				<tr><td>紙芝居 HTML</td><td class="nowrap"><code>src/kamishibai/kamishibai.html</code></td><td>3 場面。絵は SVG。場面の切り替え・字幕・簡単な動き（移動・フェード・拡大）</td></tr>
+				<tr><td>台本</td><td class="nowrap"><code>src/kamishibai/script.json</code></td><td>場面ごとのナレーション文。HTML と音声生成の両方がここを読む</td></tr>
+				<tr><td>音声合成のサンプル</td><td class="nowrap"><code>notes/samples/voice-list.ps1</code><br><code>notes/samples/voice-speak.ps1</code><br><code>notes/samples/voice-to-wav.ps1</code><br><code>notes/samples/voice-winrt.ps1</code></td><td>段階 2 の下調べで使ったサンプル。同名の cmd ランチャー付き</td></tr>
+				<tr><td>読み上げ音声</td><td class="nowrap"><code>src/kamishibai/audio/</code></td><td>場面ごとの wav（<code>scene01.wav</code> 〜）</td></tr>
+				<tr><td>音声生成スクリプト</td><td class="nowrap"><code>tools/20_build/make-voice.ps1</code></td><td>台本から Windows 標準の音声合成で wav を書き出す。同名の cmd ランチャーを付ける</td></tr>
+				<tr><td>動画化スクリプト</td><td class="nowrap"><code>tools/20_build/make-video.ps1</code></td><td>紙芝居をコマ撮りし、音声と合わせて mp4 にする。同名の cmd ランチャーを付ける</td></tr>
+				<tr><td>動画</td><td class="nowrap"><code>dist/kamishibai.mp4</code></td><td>動画化スクリプトの出力（Git 管理外）</td></tr>
+			</tbody>
+		</table>
+		</div>
+	</section>
+
+	<section class="ch03" id="ch03">
+		<h1>進め方</h1>
+		<p>3 段階に分け、段階ごとに利用者の確認を取ってから次へ進む。</p>
+
+		<h2>段階 1: 紙芝居 HTML（音声なし）</h2>
+		<ul>
+			<li>台本の題材を決め、<code>script.json</code> に 3 場面分のナレーションを書く</li>
+			<li>場面ごとの絵を SVG で描き、場面の切り替えと字幕表示を作る</li>
+			<li>送りはクリック・矢印キーの手動と、一定時間ごとの自動の両方にする</li>
+		</ul>
+
+		<h2>段階 2: 読み上げ音声</h2>
+		<ul>
+			<li><code>make-voice.ps1</code> で、台本の各場面を wav に書き出す（Windows 標準の音声合成 <code>System.Speech</code> を使う）</li>
+			<li>HTML 側で場面に入ったら音声を再生し、終わったら次の場面へ送る</li>
+			<li>下調べで使ったコードは「サンプル」の章にまとめる</li>
+		</ul>
+
+		<h2>段階 3: 動画化</h2>
+		<ul>
+			<li>PlayWright 共有環境で紙芝居を再生しながらコマ撮りする</li>
+			<li>ffmpeg でコマと音声をまとめ、mp4 にする</li>
+		</ul>
+	</section>
+
+	<section class="ch04" id="ch04">
+		<h1>着手前に確かめる前提</h1>
+		<p>該当する段階の着手前に確かめる。</p>
+		<div class="tablewrap">
+		<table>
+			<thead>
+				<tr><th>前提</th><th>確かめ方</th><th>段階</th><th>結果</th></tr>
+			</thead>
+			<tbody>
+				<tr><td>日本語の音声（Haruka 等）が入っている</td><td><code>System.Speech</code> の <code>GetInstalledVoices()</code> で一覧を出す</td><td class="nowrap">2</td><td>✅ 確認済み。<code>System.Speech</code> で Haruka Desktop、WinRT で Ayumi・Haruka・Ichiro。どれも wav 保存・再生まで動いた</td></tr>
+				<tr><td>ffmpeg が PATH にある</td><td><code>ffmpeg -version</code></td><td class="nowrap">3</td><td class="nowrap">⬜ 未実施</td></tr>
+				<tr><td>PlayWright 共有環境でコマ撮りできる</td><td>共有環境の利用方法の資料を読む</td><td class="nowrap">3</td><td class="nowrap">⬜ 未実施</td></tr>
+			</tbody>
+		</table>
+		</div>
+		<div class="callout">
+			<strong>前提が欠けていたとき</strong>: ffmpeg が無ければ、追加のインストールが要る。どれを入れるかは、その時点で案を出して決める。
+		</div>
+	</section>
+
+	<section class="ch05" id="ch05">
+		<h1>サンプル</h1>
+
+		<h2>音声合成</h2>
+		<p>Windows の音声合成には、従来の <code>System.Speech</code> と、新しい WinRT（<code>Windows.Media.SpeechSynthesis</code>）の 2 つがある。選べる声と、声を選ぶときに使う値が違う。この PC で一覧を出した結果は次のとおり。</p>
+		<div class="tablewrap">
+		<table>
+			<thead>
+				<tr><th>仕組み</th><th>声を選ぶときの値</th><th>言語</th><th>性別</th></tr>
+			</thead>
+			<tbody>
+				<tr><td class="nowrap"><code>System.Speech</code></td><td class="nowrap"><code>Microsoft Haruka Desktop</code></td><td class="nowrap">ja-JP</td><td class="nowrap">女性</td></tr>
+				<tr><td class="nowrap"><code>System.Speech</code></td><td class="nowrap"><code>Microsoft Zira Desktop</code></td><td class="nowrap">en-US</td><td class="nowrap">女性</td></tr>
+				<tr><td class="nowrap">WinRT</td><td class="nowrap"><code>Microsoft Ayumi</code>（既定）</td><td class="nowrap">ja-JP</td><td class="nowrap">女性</td></tr>
+				<tr><td class="nowrap">WinRT</td><td class="nowrap"><code>Microsoft Haruka</code></td><td class="nowrap">ja-JP</td><td class="nowrap">女性</td></tr>
+				<tr><td class="nowrap">WinRT</td><td class="nowrap"><code>Microsoft Ichiro</code></td><td class="nowrap">ja-JP</td><td class="nowrap">男性</td></tr>
+			</tbody>
+		</table>
+		</div>
+		<ul>
+			<li><code>System.Speech</code> は <code>SelectVoice</code> に名前（<code>Name</code>）を渡して選ぶ</li>
+			<li>WinRT は <code>AllVoices</code> から <code>DisplayName</code> で探し、見つけた声を <code>Voice</code> に入れる</li>
+			<li>Windows の設定情報には WinRT 側の声として Sayaka も登録されているが、<code>AllVoices</code> には出ない</li>
+		</ul>
+
+		<h3>声の一覧を出す</h3>
+		<p><code>notes/samples/voice-list.ps1</code>（<code>voice-list.cmd</code> 付き）。2 つの仕組みそれぞれについて、選べる声を出す。上の表はこの出力から作った。</p>
+		<pre><code class="language-powershell">$ErrorActionPreference = 'Stop'
+
+Write-Output '--- System.Speech（SelectVoice に渡す値は Name） ---'
+Add-Type -AssemblyName System.Speech
+$synth = New-Object System.Speech.Synthesis.SpeechSynthesizer
+foreach ($v in $synth.GetInstalledVoices()) {
+	$i = $v.VoiceInfo
+	Write-Output ("Name={0} / Culture={1} / Gender={2} / 有効={3}" -f $i.Name, $i.Culture, $i.Gender, $v.Enabled)
+}
+$synth.Dispose()
+
+Write-Output ''
+Write-Output '--- WinRT（Voice に入れる声を DisplayName で探す） ---'
+[void][Windows.Media.SpeechSynthesis.SpeechSynthesizer, Windows.Media.SpeechSynthesis, ContentType = WindowsRuntime]
+foreach ($v in [Windows.Media.SpeechSynthesis.SpeechSynthesizer]::AllVoices) {
+	Write-Output ("DisplayName={0} / Language={1} / Gender={2}" -f $v.DisplayName, $v.Language, $v.Gender)
+}
+Write-Output ("既定: {0}" -f [Windows.Media.SpeechSynthesis.SpeechSynthesizer]::DefaultVoice.DisplayName)</code></pre>
+		<ul>
+			<li><code>[Windows.Media.SpeechSynthesis.SpeechSynthesizer, Windows.Media.SpeechSynthesis, ContentType = WindowsRuntime]</code>: WinRT の型を PowerShell 5.1 に読み込む書き方。<code>Add-Type</code> は使わない</li>
+			<li><code>DefaultVoice</code>: 声を選ばないときに使われる声</li>
+		</ul>
+
+		<h3>スピーカーから読み上げるだけ</h3>
+		<p><code>notes/samples/voice-speak.ps1</code>（ダブルクリック用の <code>voice-speak.cmd</code> 付き）。保存せず、その場で鳴らす最小の形。</p>
+		<pre><code class="language-powershell">$ErrorActionPreference = 'Stop'
+Add-Type -AssemblyName System.Speech
+
+$synth = New-Object System.Speech.Synthesis.SpeechSynthesizer
+$synth.SelectVoice('Microsoft Haruka Desktop')
+$synth.Speak('むかしむかし、ある山のふもとに、小さな村がありました。')
+$synth.Dispose()</code></pre>
+		<ul>
+			<li><code>Add-Type -AssemblyName System.Speech</code>: Windows に入っている .NET Framework の音声合成の部品を読み込む</li>
+			<li><code>SelectVoice</code>: 使う音声を名前で選ぶ。省くと Windows の既定の音声になる</li>
+			<li><code>Speak</code>: 読み終わるまで待つ。待たずに先へ進むなら <code>SpeakAsync</code></li>
+			<li>速さは <code>$synth.Rate</code>（-10〜10）、音量は <code>$synth.Volume</code>（0〜100）で変える</li>
+		</ul>
+
+		<h3>wav に保存して再生する</h3>
+		<p><code>notes/samples/voice-to-wav.ps1</code>（<code>voice-to-wav.cmd</code> 付き）。音声の一覧を出し、日本語の音声を探して選び、wav に書き出してから再生する。<code>make-voice.ps1</code> はこれを元に、台本の場面ごとに書き出す形へ広げる。</p>
+		<pre><code class="language-powershell">$ErrorActionPreference = 'Stop'
+Add-Type -AssemblyName System.Speech
+
+$synth = New-Object System.Speech.Synthesis.SpeechSynthesizer
+Write-Output '--- インストール済みの音声 ---'
+foreach ($v in $synth.GetInstalledVoices()) {
+	$i = $v.VoiceInfo
+	Write-Output ("{0} / {1} / {2} / 有効={3}" -f $i.Name, $i.Culture, $i.Gender, $v.Enabled)
+}
+
+$ja = $synth.GetInstalledVoices() | Where-Object { $_.Enabled -and $_.VoiceInfo.Culture.Name -eq 'ja-JP' } | Select-Object -First 1
+if (-not $ja) {
+	Write-Output '日本語の音声が見つからない'
+	exit 1
+}
+$synth.SelectVoice($ja.VoiceInfo.Name)
+Write-Output ("使用する音声: {0}" -f $ja.VoiceInfo.Name)
+
+$outDir = Join-Path $PSScriptRoot '../../tmp'
+if (-not (Test-Path $outDir)) { New-Item -ItemType Directory $outDir | Out-Null }
+$wav = Join-Path $outDir 'voice-to-wav.wav'
+$synth.SetOutputToWaveFile($wav)
+$synth.Speak('むかしむかし、ある山のふもとに、小さな村がありました。')
+$synth.SetOutputToNull()
+$synth.Dispose()
+
+$size = (Get-Item $wav).Length
+Write-Output ("wav を書き出した: tmp/voice-to-wav.wav（{0:N0} バイト）" -f $size)
+
+$player = New-Object System.Media.SoundPlayer $wav
+$player.PlaySync()
+Write-Output '再生終了'</code></pre>
+		<ul>
+			<li><code>GetInstalledVoices()</code>: 入っている音声の一覧。言語（<code>Culture</code>）が <code>ja-JP</code> のものを選ぶ</li>
+			<li><code>SetOutputToWaveFile</code>: 出力先を wav にする。この後の <code>Speak</code> はスピーカーで鳴らず、ファイルに書かれる</li>
+			<li><code>SetOutputToNull</code>: 出力先を切り替えて、wav を閉じる</li>
+			<li><code>System.Media.SoundPlayer</code> の <code>PlaySync</code>: wav を鳴らし、終わるまで待つ</li>
+		</ul>
+		<h3>WinRT の声を切り替えて再生する</h3>
+		<p><code>notes/samples/voice-winrt.ps1</code>（<code>voice-winrt.cmd</code> 付き）。Ayumi・Haruka・Ichiro の順に、名乗りを入れた文を wav に書き出して再生する。</p>
+		<pre><code class="language-powershell">$ErrorActionPreference = 'Stop'
+Add-Type -AssemblyName System.Runtime.WindowsRuntime
+[void][Windows.Media.SpeechSynthesis.SpeechSynthesizer, Windows.Media.SpeechSynthesis, ContentType = WindowsRuntime]
+
+# WinRT の非同期操作を .NET の Task に変えて待つ
+$asTask = [System.WindowsRuntimeSystemExtensions].GetMethods() | Where-Object {
+	$_.Name -eq 'AsTask' -and $_.GetParameters().Count -eq 1 -and $_.GetParameters()[0].ParameterType.Name -eq 'IAsyncOperation`1'
+} | Select-Object -First 1
+function Wait-WinRT($op, [Type]$type) {
+	$task = $asTask.MakeGenericMethod($type).Invoke($null, @($op))
+	[void]$task.Wait(-1)
+	$task.Result
+}
+
+$outDir = Join-Path $PSScriptRoot '../../tmp'
+if (-not (Test-Path $outDir)) { New-Item -ItemType Directory $outDir | Out-Null }
+$synth = New-Object Windows.Media.SpeechSynthesis.SpeechSynthesizer
+foreach ($name in 'Ayumi', 'Haruka', 'Ichiro') {
+	$voice = [Windows.Media.SpeechSynthesis.SpeechSynthesizer]::AllVoices | Where-Object { $_.DisplayName -eq "Microsoft $name" }
+	if (-not $voice) {
+		Write-Output ("見つからない: Microsoft {0}" -f $name)
+		continue
+	}
+	$synth.Voice = $voice
+	$text = "わたしは{0}です。むかしむかし、ある山のふもとに、小さな村がありました。" -f $name
+	$stream = Wait-WinRT ($synth.SynthesizeTextToStreamAsync($text)) ([Windows.Media.SpeechSynthesis.SpeechSynthesisStream])
+
+	$wav = Join-Path $outDir ("voice-{0}.wav" -f $name)
+	$src = [System.IO.WindowsRuntimeStreamExtensions]::AsStreamForRead($stream)
+	$dst = [System.IO.File]::Create($wav)
+	$src.CopyTo($dst)
+	$dst.Close()
+	$src.Close()
+
+	Write-Output ("{0}: tmp/voice-{0}.wav（{1:N0} バイト）を再生" -f $name, (Get-Item $wav).Length)
+	$player = New-Object System.Media.SoundPlayer $wav
+	$player.PlaySync()
+}
+Write-Output '再生終了'</code></pre>
+		<ul>
+			<li><code>Wait-WinRT</code>: WinRT の処理は終わるのを待たずに戻る。PowerShell 5.1 には待つ書き方が無いため、.NET の <code>Task</code> に変えて終わるまで待つ</li>
+			<li><code>SynthesizeTextToStreamAsync</code>: 読み上げを音声データ（wav 形式）にする。WinRT にはスピーカーで直接鳴らす機能が無いため、ファイルに書き出してから <code>SoundPlayer</code> で鳴らす</li>
+			<li><code>AsStreamForRead</code>: WinRT のデータを .NET のストリームに変え、<code>CopyTo</code> でファイルへ写す</li>
+		</ul>
+
+		<div class="callout">
+			<strong>BOM が要る</strong>: 日本語を含む ps1 は BOM 付き UTF-8 で保存する。BOM が無いと Windows PowerShell 5.1 が文字コードを読み違え、構文エラーで止まる。<code>System.Speech</code> は .NET Framework の部品のため、5.1 で動かす（PowerShell 7 での動作は未確認）。
+		</div>
+	</section>
+
+	<section class="ch06" id="ch06">
+		<h1>作品の置き場と公開</h1>
+		<p>作品をいくつか作るため、共通の仕組みと作品を分けて置く。作品は台本と絵だけを持ち、送り・音・読み上げは共通の仕組みを使う。</p>
+		<pre><code class="language-text">src/
+  index.html              作品一覧
+  engine/                 共通の仕組み
+    kamishibai.css        舞台の枠・字幕・切り替えの動き
+    player.js             送り・自動再生・操作
+    sound.js              効果音・BGM（Web Audio）
+    speech.js             読み上げ（Web Speech）
+  works/
+    01-momotaro/          桃太郎（冒頭）
+      index.html          engine を読み込むだけ
+      story.js            台本・場面ごとの絵（SVG）・音の指定</code></pre>
+		<ul>
+			<li>作品のフォルダ名は <code>番号-英数字</code>（<code>01-momotaro</code>）。番号は作った順</li>
+			<li>作品名は漢字で付け、<code>&lt;title&gt;</code>・作品一覧・画面の表題に使う。1 作目は「桃太郎（冒頭）」。計画は <a href="p261004-02-momotaro-web.html">計画: Web 紙芝居「桃太郎」の冒頭</a></li>
+			<li>共通の JS は <code>&lt;script src&gt;</code> で読み込む。ES モジュール（<code>import</code>）はファイルを直接開いたとき読み込めないため使わない</li>
+			<li>「成果物」の章の <code>src/kamishibai/</code> は、この構成に置き換える。台本は <code>script.json</code> ではなく各作品の <code>story.js</code> に持つ</li>
+		</ul>
+
+		<h2>公開</h2>
+		<ul>
+			<li>GitHub Pages で、<code>develop</code> ブランチの root から公開する</li>
+			<li>root に <code>index.html</code>（<code>README.html</code> へのリダイレクト）と <code>.nojekyll</code> を置く。README から作品一覧 <code>src/index.html</code> へリンクする</li>
+			<li>無料プランの Pages は public リポジトリが要る。公開前に git の初期化と、公開してよい内容かの点検を行う</li>
+		</ul>
+	</section>
+
+	<section class="ch07" id="ch07">
+		<h1>範囲外</h1>
+		<ul>
+			<li>アニメ調のイラスト（ローカルでの画像生成）。GPU とモデルの導入が要るため、別の計画にする</li>
+			<li>VOICEVOX など、標準以外の音声合成ソフト</li>
+			<li>BGM・効果音</li>
+		</ul>
+	</section>
+</div>
+<footer>
+	<a class="back" href="../../README.html">⌂</a>
+</footer>
+</body>
+</html>

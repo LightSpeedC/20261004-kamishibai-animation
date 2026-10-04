@@ -1,0 +1,127 @@
+﻿<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<title>紙芝居アニメーション</title>
+<style>
+:root {
+	--navy1: #12224d;
+	--navy2: #2f5fbf;
+	--ink: #1c2330;
+	--ink-soft: #4a5568;
+	--line: #d9dfe8;
+	--code-bg: #f4f6fa;
+	--link: #1a4fa0;
+	--accent: #12224d;
+	--accent2: #2f5fbf;
+	--soft: #f2f5fb;
+}
+* { box-sizing: border-box; }
+body {
+	margin: 0;
+	background: #fff;
+	color: var(--ink, #1c2330);
+	font-family: "Segoe UI", "Hiragino Kaku Gothic ProN", Meiryo, sans-serif;
+	font-size: 15.5px;
+	line-height: 1.85;
+}
+.titlebar {
+	background: linear-gradient(135deg, var(--navy1, #12224d), var(--navy2, #2f5fbf));
+	color: #fff;
+	padding: 34px 30px 30px;
+}
+.titlebar .inner { max-width: 1600px; margin: 0 auto; }
+.titlebar h1 { margin: 0 0 8px; font-size: 1.9em; color: #fff; }
+.titlebar .lead { font-size: 0.95em; opacity: 0.9; }
+.titlebar .date { font-size: 0.85em; opacity: 0.85; }
+.wrap { max-width: 1600px; margin: 0 auto; padding: 0 30px; }
+a { color: var(--link, #1a4fa0); background: transparent; }
+a.back {
+	display: inline-block;
+	margin: 20px 0 0;
+	padding: 2px 12px;
+	border-radius: 6px;
+	background: linear-gradient(100deg, var(--navy1, #12224d), var(--navy2, #2f5fbf));
+	color: #fff;
+	text-decoration: none;
+	font-weight: 700;
+}
+code {
+	background: var(--code-bg, #f4f6fa);
+	border: 1px solid var(--line, #d9dfe8);
+	color: #17335f;
+	padding: 1px 5px;
+	border-radius: 3px;
+	font-size: 0.92em;
+}
+.minibar {
+	background: linear-gradient(135deg, var(--navy1, #12224d), var(--navy2, #2f5fbf));
+	color: #fff;
+	border-radius: 8px;
+	padding: 10px 16px;
+	margin: 30px 0 16px;
+}
+.minibar h2 { margin: 0; font-size: 1.2em; color: #fff; }
+.it01 { --accent: hsl(280, 78%, 25%); --accent2: hsl(280, 58%, 55%); }
+.it02 { --accent: hsl(186.7, 78%, 25%); --accent2: hsl(186.7, 58%, 55%); }
+.it03 { --accent: hsl(93.3, 78%, 25%); --accent2: hsl(93.3, 58%, 55%); }
+.it04 { --accent: hsl(0, 78%, 25%); --accent2: hsl(0, 58%, 55%); }
+h1.item {
+	background: linear-gradient(100deg, var(--accent, #12224d), var(--accent2, #2f5fbf));
+	color: #fff;
+	padding: 10px 16px;
+	border-radius: 8px;
+	margin: 16px 0 8px;
+	box-shadow: 0 1px 4px rgba(0,0,0,0.12);
+	font-size: 1.05em;
+}
+ul.doclist { margin: 0 0 20px; }
+ul.doclist li { margin: 6px 0; }
+footer {
+	max-width: 1600px;
+	margin: 0 auto;
+	padding: 18px 30px 30px;
+	color: var(--ink-soft, #4a5568);
+	background: #fff;
+}
+</style>
+</head>
+<body>
+<div class="titlebar">
+	<div class="inner">
+		<h1>紙芝居アニメーション</h1>
+		<div class="lead">外部サービスを使わず、絵・動き・音声のついた紙芝居を作る試作</div>
+		<div class="date">📅 作成: 2026-10-04 / 更新: 2026-10-04</div>
+	</div>
+</div>
+<div class="wrap">
+	<a class="back" href="../">⌂</a>
+
+	<p>Claude Code と手元のツールだけで、紙芝居アニメーションを作れるかを確かめるプロジェクト。絵は SVG、ナレーションは Windows 標準の音声合成で作り、最後に動画（mp4）にまとめる。クラウドの画像生成・音声合成は使わない。</p>
+
+	<div class="minibar"><h2>計画</h2></div>
+	<h1 class="item it01">紙芝居アニメの試作</h1>
+	<ul class="doclist">
+		<li><a href="notes/10_plan/p261004-01-kamishibai-animation.html">計画: 紙芝居アニメの試作（外部サービス不使用）</a></li>
+		<li><a href="notes/10_plan/p261004-02-momotaro-web.html">計画: Web 紙芝居「桃太郎」の冒頭</a></li>
+	</ul>
+
+	<div class="minibar"><h2>サンプル</h2></div>
+	<h1 class="item it02">Windows の音声合成</h1>
+	<ul class="doclist">
+		<li><a href="notes/10_plan/p261004-01-kamishibai-animation.html#ch05">計画書「サンプル」の章</a>（<code>notes/samples/voice-*.ps1</code> の解説）</li>
+	</ul>
+	<h1 class="item it03">ブラウザの読み上げ</h1>
+	<ul class="doclist">
+		<li><a href="notes/samples/speech-webspeech.html">サンプル: Web Speech API の読み上げ</a></li>
+	</ul>
+	<h1 class="item it04">ブラウザの効果音と BGM</h1>
+	<ul class="doclist">
+		<li><a href="notes/samples/sound-webaudio.html">サンプル: Web Audio API の効果音と BGM</a></li>
+	</ul>
+</div>
+<footer>
+	<a class="back" href="../">⌂</a>
+</footer>
+</body>
+</html>
