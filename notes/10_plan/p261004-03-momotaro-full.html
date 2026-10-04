@@ -1,0 +1,285 @@
+﻿<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<title>計画: 桃太郎を最後まで</title>
+<style>
+:root {
+	--navy1: #12224d;
+	--navy2: #2f5fbf;
+	--ink: #1c2330;
+	--ink-soft: #4a5568;
+	--line: #d9dfe8;
+	--code-bg: #f4f6fa;
+	--link: #1a4fa0;
+	--accent: #12224d;
+	--accent2: #2f5fbf;
+	--soft: #f2f5fb;
+}
+.ch01 { --accent: hsl(280, 78%, 25%); --accent2: hsl(280, 58%, 55%); --soft: hsl(280, 28%, 95%); }
+.ch02 { --accent: hsl(210, 78%, 25%); --accent2: hsl(210, 58%, 55%); --soft: hsl(210, 28%, 95%); }
+.ch03 { --accent: hsl(140, 78%, 25%); --accent2: hsl(140, 58%, 55%); --soft: hsl(140, 28%, 95%); }
+.ch04 { --accent: hsl(70, 78%, 25%); --accent2: hsl(70, 58%, 55%); --soft: hsl(70, 28%, 95%); }
+.ch05 { --accent: hsl(0, 78%, 25%); --accent2: hsl(0, 58%, 55%); --soft: hsl(0, 28%, 95%); }
+* { box-sizing: border-box; }
+body {
+	margin: 0;
+	background: #fff;
+	color: var(--ink, #1c2330);
+	font-family: "Segoe UI", "Hiragino Kaku Gothic ProN", Meiryo, sans-serif;
+	font-size: 15.5px;
+	line-height: 1.85;
+}
+.titlebar {
+	background: linear-gradient(135deg, var(--navy1, #12224d), var(--navy2, #2f5fbf));
+	color: #fff;
+	padding: 34px 30px 30px;
+}
+.titlebar .inner { max-width: 1600px; margin: 0 auto; }
+.titlebar h1 { margin: 0 0 8px; font-size: 1.9em; color: #fff; }
+.titlebar .date { font-size: 0.85em; opacity: 0.85; }
+.wrap { max-width: 1600px; margin: 0 auto; padding: 0 30px; }
+a { color: var(--link, #1a4fa0); background: transparent; }
+a.back {
+	display: inline-block;
+	margin: 20px 0 0;
+	padding: 2px 12px;
+	border-radius: 6px;
+	background: linear-gradient(100deg, var(--navy1, #12224d), var(--navy2, #2f5fbf));
+	color: #fff;
+	text-decoration: none;
+	font-weight: 700;
+}
+.toc ol {
+	counter-reset: tocnum;
+	list-style: none;
+	padding: 0;
+	margin: 20px 0 0;
+	display: flex;
+	flex-wrap: wrap;
+	gap: 8px;
+}
+.toc ol li { counter-increment: tocnum; }
+.toc ol li a {
+	display: -webkit-box;
+	-webkit-box-orient: vertical;
+	-webkit-line-clamp: 2;
+	overflow: hidden;
+	text-overflow: ellipsis;
+	white-space: normal;
+	width: 310px;
+	max-width: 100%;
+	padding: 6px 12px;
+	border-radius: 6px;
+	background: linear-gradient(100deg, var(--accent, #12224d), var(--accent2, #2f5fbf));
+	color: #fff;
+	text-decoration: none;
+	font-weight: 700;
+}
+.toc ol li a::before { content: counter(tocnum) ". "; }
+section {
+	background: linear-gradient(180deg, var(--soft, #f2f5fb), #fff);
+	color: var(--ink, #1c2330);
+	padding: 4px 26px 26px;
+	margin: 34px 0;
+	border-radius: 8px;
+}
+section h1 {
+	background: linear-gradient(100deg, var(--accent, #12224d), var(--accent2, #2f5fbf));
+	color: #fff;
+	padding: 14px 20px;
+	margin: 26px 0 20px;
+	border-radius: 8px;
+	box-shadow: 0 3px 10px rgba(0,0,0,0.18);
+	font-size: 1.45em;
+}
+section h2 {
+	border-left: 6px solid var(--accent, #12224d);
+	background: linear-gradient(90deg, var(--soft, #f2f5fb), #fff);
+	color: var(--ink, #1c2330);
+	padding: 6px 12px;
+	margin: 30px 0 12px;
+	font-size: 1.2em;
+}
+code {
+	background: var(--code-bg, #f4f6fa);
+	border: 1px solid var(--line, #d9dfe8);
+	color: #17335f;
+	padding: 1px 5px;
+	border-radius: 3px;
+	font-size: 0.92em;
+}
+.tablewrap { overflow-x: auto; }
+table {
+	border-collapse: collapse;
+	width: 100%;
+	border-radius: 8px;
+	overflow: hidden;
+	box-shadow: 0 1px 4px rgba(0,0,0,0.08);
+	font-size: 0.95em;
+}
+th, td {
+	padding: 9px 12px;
+	border-bottom: 1px solid var(--line, #d9dfe8);
+	text-align: left;
+	vertical-align: top;
+}
+th {
+	background: linear-gradient(100deg, var(--accent, #12224d), var(--accent2, #2f5fbf));
+	color: #fff;
+}
+td { background: #fff; color: var(--ink, #1c2330); }
+tr:nth-child(even) td { background: #fafbfe; color: var(--ink, #1c2330); }
+td.nowrap { white-space: nowrap; }
+td.num { text-align: right; white-space: nowrap; }
+.callout {
+	border-left: 6px solid var(--accent, #12224d);
+	background: linear-gradient(180deg, var(--soft, #f2f5fb), #fff);
+	color: var(--ink, #1c2330);
+	border-radius: 0 8px 8px 0;
+	padding: 10px 16px;
+	margin: 16px 0;
+}
+.callout strong { color: var(--accent, #12224d); background: transparent; }
+footer {
+	max-width: 1600px;
+	margin: 0 auto;
+	padding: 18px 30px 30px;
+	color: var(--ink-soft, #4a5568);
+	background: #fff;
+}
+</style>
+</head>
+<body>
+<div class="titlebar">
+	<div class="inner">
+		<h1>計画: 桃太郎を最後まで</h1>
+		<div class="date">📅 作成: 2026-10-04 / 更新: 2026-10-05</div>
+	</div>
+</div>
+<div class="wrap">
+	<a class="back" href="../../README.html">⌂</a>
+
+	<nav class="toc">
+		<ol>
+			<li class="ch01"><a href="#ch01">目的</a></li>
+			<li class="ch02"><a href="#ch02">台本</a></li>
+			<li class="ch03"><a href="#ch03">絵と読み</a></li>
+			<li class="ch04"><a href="#ch04">進め方</a></li>
+			<li class="ch05"><a href="#ch05">決めること</a></li>
+		</ol>
+	</nav>
+
+	<section class="ch01" id="ch01">
+		<h1>目的</h1>
+		<p>冒頭（名づけまで）の 5 場面で作った桃太郎を、鬼退治から村へ帰るまでの全編に広げる。利用者の要望。共通の仕組み（<code>src/engine/</code>）はそのまま使い、作品の台本と絵（<code>story.js</code>）を足す。</p>
+		<p><a href="p261004-02-momotaro-web.html">計画: Web 紙芝居「桃太郎」の冒頭</a>の「1. 範囲」（1-A: 名づけまで）を広げるもの。読み上げ・送り・声の切り替えは p261004-02 で作ったものを使う。</p>
+	</section>
+
+	<section class="ch02" id="ch02">
+		<h1>台本</h1>
+		<p>1〜5 は今の台本のまま。6 から先を足し、15 場面にする。昔話のため著作権の制約はない。文は自分で書く。</p>
+		<div class="tablewrap">
+		<table>
+			<thead>
+				<tr><th>場面</th><th>絵</th><th>ナレーション</th></tr>
+			</thead>
+			<tbody>
+				<tr><td class="num">1〜5</td><td>（今のまま）</td><td>住んでいた → 山へ・川へ → 桃が流れてくる → 桃が割れて赤ちゃん → 名づけ</td></tr>
+				<tr><td class="num">6</td><td>大きくなった桃太郎が、大きな石を持ち上げている。村の子どもたちが驚く</td><td>桃太郎はすくすくと育ち、村いちばんの力持ちになりました。</td></tr>
+				<tr><td class="num">7</td><td>海の向こうに鬼ヶ島。荒らされた村で、村人が困っている</td><td>ある日、海の向こうの鬼ヶ島から鬼がやってきて、村を荒らしては宝物を奪っていくと聞きました。</td></tr>
+				<tr><td class="num">8</td><td>はちまきと「日本一」の旗の桃太郎に、おばあさんがきびだんごの袋を渡す。おじいさんが見送る</td><td>「わたしが鬼を退治してきます」。おばあさんは、日本一のきびだんごをこしらえて持たせてくれました。</td></tr>
+				<tr><td class="num">9</td><td>道で犬が寄ってくる。きびだんごを渡す</td><td>しばらく行くと、犬がやってきました。「桃太郎さん、お腰につけたきびだんご、一つわたしにくださいな」。きびだんごをもらった犬は、家来になりました。</td></tr>
+				<tr><td class="num">10</td><td>木から猿が下りてくる。犬が後ろに控える</td><td>つぎに、猿がやってきました。「桃太郎さん、お腰につけたきびだんご、一つわたしにくださいな」。きびだんごをもらった猿も、家来になりました。</td></tr>
+				<tr><td class="num">11</td><td>空からきじが舞い下りる。犬と猿が見上げる</td><td>そのあと、きじが飛んできました。「桃太郎さん、お腰につけたきびだんご、一つわたしにくださいな」。きびだんごをもらったきじも、家来になりました。</td></tr>
+				<tr><td class="num">12</td><td>波の上を、旗を立てた船で進む。遠くに鬼ヶ島</td><td>桃太郎たちは船に乗って、鬼ヶ島へ向かいました。</td></tr>
+				<tr><td class="num">13</td><td>鬼ヶ島で戦う。犬が鬼の足にかみつき、猿が顔をひっかき、きじが頭をつつく。桃太郎が鬼の大将を投げ飛ばす</td><td>鬼ヶ島に着くと、犬はかみつき、猿はひっかき、きじはつつき、桃太郎は鬼の大将をやっつけました。</td></tr>
+				<tr><td class="num">14</td><td>鬼たちが頭を下げ、宝物を差し出す</td><td>「まいりました。もう悪いことはしません」。鬼たちは、奪った宝物を差し出しました。</td></tr>
+				<tr><td class="num">15</td><td>宝物を積んだ車を引いて村へ帰る。おじいさん・おばあさん・村の人たちが喜ぶ</td><td>桃太郎は宝物を持って村へ帰り、村の人たちに返しました。おじいさんもおばあさんも、村の人たちも、みんな大喜びしました。めでたし、めでたし。</td></tr>
+			</tbody>
+		</table>
+		</div>
+	</section>
+
+	<section class="ch03" id="ch03">
+		<h1>絵と読み</h1>
+		<h2>絵</h2>
+		<ul>
+			<li>今の絵と同じく、太い輪郭と平塗りの単純な絵にする</li>
+			<li>人物・物の部品を足す: 桃太郎（若者・はちまき）、犬、猿、きじ、鬼（赤鬼・青鬼・大将）、旗、船、きびだんごの袋、宝物の山と車、村人</li>
+			<li>場面の中の動きの例: 石を持ち上げる（6）、犬が尻尾を振る（9）、きじが舞い下りる（11）、船が波に揺れる（12）、鬼と組み合い「ドカーン」の文字（13）、宝物がきらきらする（14）</li>
+			<li>鬼は迫力のある顔（牙・怒った眉・こん棒）にする（8-B）。血・けが・倒れて動かない様子は描かず、最後は降参して終わる（12-A）</li>
+		</ul>
+		<h2>読み</h2>
+		<ul>
+			<li>読み違えそうな語は文を書く段階で避ける。例: 「一行は」は「いちぎょう」と読まれるおそれがあるため、「桃太郎たちは」と書く</li>
+			<li>音声合成は「日本一」を「にほんいち」、「大喜び」を「だいよろこび」と読んだ（利用者が聞いて確認）。読み用の文（<code>read</code>）で「にっぽんいち」「おおよろこび」にした（8・15 場面）。字幕は漢字のまま</li>
+			<li>かぎ括弧の中に「。」がある文（13）は、括弧の途中で文が分かれて読まれる。読み方は変わらないため、そのままにする</li>
+		</ul>
+	</section>
+
+	<section class="ch04" id="ch04">
+		<h1>進め方</h1>
+		<ul>
+			<li>段階 1: 台本の 6〜15 と、その絵を <code>src/works/01-momotaro/story.js</code> に足す。字幕・送り・読み上げは今の仕組みのまま動く。結果: ✅ 済。部品として桃太郎（若者）・村人・犬・猿・きじ・鬼・船・鬼ヶ島・宝物・車を足した。<code>tests/momotaro.spec.ts</code> で全 15 場面を手で送る・自動で送る・字幕が台本どおりに変わることを確かめ、全場面のスクリーンショットで絵の崩れを見た</li>
+			<li>段階 2: 利用者が通しで見て聞き、絵の直しと読み違いの直しをする</li>
+			<li>p261004-02 の段階 3（効果音と BGM）は、全編の絵ができてから、全場面まとめて付ける。BGM には唱歌「桃太郎」（♪桃太郎さん、桃太郎さん）の旋律を使ってよい（利用者の判断。広く使われている曲）</li>
+			<li>作品の名前を「桃太郎」に改める（7-A）。作品のページ・表紙・作品一覧・README・p261004-01 の記載を直す</li>
+			<li>テストは <code>tests/momotaro.spec.ts</code> の台本を全編に広げ、全場面を送って字幕とスクリーンショットを確かめる</li>
+		</ul>
+	</section>
+
+	<section class="ch05" id="ch05">
+		<h1>決めること</h1>
+		<p>6-B・7-A・8-B・9-A・10-A・11-A・12-A に決まった。</p>
+		<ul>
+			<li><strong>6. 場面の数</strong>
+				<ul>
+					<li>6-A: 14 場面（猿ときじを同じ場面にする）。同じ形の場面が 3 つ続かず、テンポがよい</li>
+					<li>6-B: 15 場面（猿・きじにも、犬と同じく 1 場面ずつ）。くり返しが紙芝居らしいが、長くなる</li>
+				</ul>
+			</li>
+			<li><strong>7. 作品の名前</strong>
+				<ul>
+					<li>7-A: 「桃太郎」に改め、今の作品（<code>01-momotaro</code>）を広げる。冒頭だけの版は残さない</li>
+					<li>7-B: 「桃太郎（冒頭）」は残し、全編は別の作品（<code>02-momotaro-full</code>）として作る</li>
+				</ul>
+			</li>
+			<li><strong>8. 鬼の描き方</strong>
+				<ul>
+					<li>8-A: 怖くない鬼。丸い顔に角と虎の腰巻き、こん棒。戦いは煙と「ドカーン」の文字で見せ、痛そうな場面は描かない</li>
+					<li>8-B: 迫力のある鬼。牙や怒った顔を描き、戦いも動きで見せる</li>
+				</ul>
+			</li>
+			<li><strong>9. 猿・きじの場面のせりふ</strong>
+				<ul>
+					<li>9-A: 犬と同じせりふを、猿・きじでもくり返す</li>
+					<li>9-B: せりふは犬だけ。猿・きじは地の文だけ</li>
+				</ul>
+			</li>
+			<li><strong>10. 犬・猿・きじの呼び方</strong>
+				<ul>
+					<li>10-A: 「家来」</li>
+					<li>10-B: 「仲間」</li>
+				</ul>
+			</li>
+			<li><strong>11. 宝物の結末</strong>
+				<ul>
+					<li>11-A: 村の人たちに返し、みんなで喜ぶ</li>
+					<li>11-B: 持ち帰り、おじいさん・おばあさんと 3 人で幸せに暮らす</li>
+				</ul>
+			</li>
+			<li><strong>12. 迫力のある鬼の範囲</strong>
+				<ul>
+					<li>12-A: 牙・怒った顔・戦いの動きは描くが、血・けが・倒れて動かない様子は描かない。最後は降参して終わる</li>
+					<li>12-B: 範囲を決めない</li>
+				</ul>
+			</li>
+		</ul>
+	</section>
+</div>
+<footer>
+	<a class="back" href="../../README.html">⌂</a>
+</footer>
+</body>
+</html>

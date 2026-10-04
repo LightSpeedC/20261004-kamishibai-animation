@@ -1,0 +1,141 @@
+﻿<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<title>状態: 紙芝居アニメーション</title>
+<style>
+:root {
+	--navy1: #12224d;
+	--navy2: #2f5fbf;
+	--ink: #1c2330;
+	--ink-soft: #4a5568;
+	--line: #d9dfe8;
+	--code-bg: #f4f6fa;
+	--link: #1a4fa0;
+	--accent: #12224d;
+	--accent2: #2f5fbf;
+	--soft: #f2f5fb;
+}
+* { box-sizing: border-box; }
+body {
+	margin: 0;
+	background: #fff;
+	color: var(--ink, #1c2330);
+	font-family: "Segoe UI", "Hiragino Kaku Gothic ProN", Meiryo, sans-serif;
+	font-size: 15.5px;
+	line-height: 1.85;
+}
+.titlebar {
+	background: linear-gradient(135deg, var(--navy1, #12224d), var(--navy2, #2f5fbf));
+	color: #fff;
+	padding: 34px 30px 30px;
+}
+.titlebar .inner { max-width: 1600px; margin: 0 auto; }
+.titlebar h1 { margin: 0 0 8px; font-size: 1.9em; color: #fff; }
+.titlebar .date { font-size: 0.85em; opacity: 0.85; }
+.wrap { max-width: 1600px; margin: 0 auto; padding: 0 30px; }
+a { color: var(--link, #1a4fa0); background: transparent; }
+a.back {
+	display: inline-block;
+	margin: 20px 0 0;
+	padding: 2px 12px;
+	border-radius: 6px;
+	background: linear-gradient(100deg, var(--navy1, #12224d), var(--navy2, #2f5fbf));
+	color: #fff;
+	text-decoration: none;
+	font-weight: 700;
+}
+h2 {
+	border-left: 6px solid var(--accent, #12224d);
+	background: linear-gradient(90deg, var(--soft, #f2f5fb), #fff);
+	color: var(--ink, #1c2330);
+	padding: 6px 12px;
+	margin: 30px 0 12px;
+	font-size: 1.2em;
+}
+code {
+	background: var(--code-bg, #f4f6fa);
+	border: 1px solid var(--line, #d9dfe8);
+	color: #17335f;
+	padding: 1px 5px;
+	border-radius: 3px;
+	font-size: 0.92em;
+}
+.tablewrap { overflow-x: auto; }
+table {
+	border-collapse: collapse;
+	width: 100%;
+	border-radius: 8px;
+	overflow: hidden;
+	box-shadow: 0 1px 4px rgba(0,0,0,0.08);
+	font-size: 0.95em;
+}
+th, td {
+	padding: 9px 12px;
+	border-bottom: 1px solid var(--line, #d9dfe8);
+	text-align: left;
+	vertical-align: top;
+}
+th {
+	background: linear-gradient(100deg, var(--accent, #12224d), var(--accent2, #2f5fbf));
+	color: #fff;
+}
+td { background: #fff; color: var(--ink, #1c2330); }
+tr:nth-child(even) td { background: #fafbfe; color: var(--ink, #1c2330); }
+td.nowrap { white-space: nowrap; }
+.badge {
+	display: inline-block;
+	padding: 0 8px;
+	border-radius: 4px;
+	font-size: 0.85em;
+	font-weight: 700;
+	white-space: nowrap;
+	color: #fff;
+}
+.b-ok { background: linear-gradient(100deg, #1d7a3c, #45b56c); color: #fff; }
+.b-none { background: linear-gradient(100deg, #5a6472, #97a1ae); color: #fff; }
+.b-warn { background: linear-gradient(100deg, #b8620a, #f0a548); color: #fff; }
+footer {
+	max-width: 1600px;
+	margin: 0 auto;
+	padding: 18px 30px 30px;
+	color: var(--ink-soft, #4a5568);
+	background: #fff;
+}
+</style>
+</head>
+<body>
+<div class="titlebar">
+	<div class="inner">
+		<h1>状態: 紙芝居アニメーション</h1>
+		<div class="date">📅 作成: 2026-10-04 / 更新: 2026-10-05</div>
+	</div>
+</div>
+<div class="wrap">
+	<a class="back" href="../../README.html">⌂</a>
+
+	<h2>桃太郎</h2>
+	<p>計画: <a href="../10_plan/p261004-02-momotaro-web.html">計画: Web 紙芝居「桃太郎」の冒頭</a>、<a href="../10_plan/p261004-03-momotaro-full.html">計画: 桃太郎を最後まで</a></p>
+	<div class="tablewrap">
+	<table>
+		<thead>
+			<tr><th>段階</th><th>状態</th><th>内容</th></tr>
+		</thead>
+		<tbody>
+			<tr><td class="nowrap">1. 絵と字幕</td><td class="nowrap"><span class="badge b-ok">済</span></td><td>5 場面の SVG・字幕・紙を引き抜く切り替え・手動送り。<code>src/works/01-momotaro/</code></td></tr>
+			<tr><td class="nowrap">2. 読み上げ</td><td class="nowrap"><span class="badge b-ok">済</span></td><td>Web Speech API で文ごとに読み上げ、読んでいる句まで字幕に色を付け、読み終わりで次の場面へ送る。<code>src/engine/speech.js</code></td></tr>			<tr><td class="nowrap">2+. 声の切り替え</td><td class="nowrap"><span class="badge b-ok">済</span></td><td>声の名前の一覧から別の声を選び、選んだ声を覚える</td></tr>
+			<tr><td class="nowrap">2++. 表紙に戻るボタン</td><td class="nowrap"><span class="badge b-ok">済</span></td><td>「⏮」で読み上げを止めて表紙に戻る</td></tr>
+			<tr><td class="nowrap">全編の絵と字幕</td><td class="nowrap"><span class="badge b-warn">着手</span></td><td>名づけの後から、鬼退治をして村へ帰るまでの 6〜15 場面を足した（p261004-03）。残りは、利用者が通しで見て聞き、絵と読みを直すこと</td></tr>
+			<tr><td class="nowrap">3. 効果音と BGM</td><td class="nowrap"><span class="badge b-none">未</span></td><td>Web Audio API で場面ごとの効果音と BGM を鳴らす</td></tr>
+		</tbody>
+	</table>
+	</div>
+
+	<h2>公開</h2>
+	<p>GitHub Pages で <code>develop</code> ブランチの root から公開している: <a href="https://lightspeedc.com/20261004-kamishibai-animation/">https://lightspeedc.com/20261004-kamishibai-animation/</a></p>
+</div>
+<footer>
+	<a class="back" href="../../README.html">⌂</a>
+</footer>
+</body>
+</html>
