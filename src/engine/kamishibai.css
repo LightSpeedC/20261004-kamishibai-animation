@@ -1,0 +1,184 @@
+/* 紙芝居の舞台・字幕・操作（p261004-02） */
+:root {
+	--ks-ink: #1c2330;
+	--ks-paper: #fbf6ea;
+	--ks-navy1: #12224d;
+	--ks-navy2: #2f5fbf;
+	--ks-wood1: #7a4a22;
+	--ks-wood2: #a8713b;
+	--ks-pull: 700ms;	/* 紙を引き抜く時間。player.js の PULL_MS と揃える */
+}
+* { box-sizing: border-box; }
+body {
+	margin: 0;
+	background: var(--ks-paper, #fbf6ea);
+	color: var(--ks-ink, #1c2330);
+	font-family: "Segoe UI", "Hiragino Kaku Gothic ProN", Meiryo, sans-serif;
+}
+.ks-header {
+	display: flex;
+	align-items: center;
+	gap: 14px;
+	padding: 12px 20px;
+	background: linear-gradient(135deg, var(--ks-navy1, #12224d), var(--ks-navy2, #2f5fbf));
+	color: #fff;
+}
+.ks-title {
+	margin: 0;
+	font-size: 1.4em;
+	background: transparent;
+	color: #fff;
+}
+.ks-back {
+	display: inline-block;
+	padding: 2px 12px;
+	border-radius: 6px;
+	background: rgba(255, 255, 255, 0.18);
+	color: #fff;
+	text-decoration: none;
+	font-weight: 700;
+}
+/* 舞台・字幕・送りのボタンが 1 画面に収まるよう、幅を画面の高さからも抑える */
+.ks-main {
+	max-width: min(1240px, max(480px, calc((100vh - 340px) * 16 / 9 + 68px)));
+	margin: 0 auto;
+	padding: 20px 16px 30px;
+}
+
+/* 舞台: 木の枠の中に 16:9 の絵を重ねる */
+.ks-frame {
+	padding: 18px;
+	border-radius: 12px;
+	background: linear-gradient(180deg, var(--ks-wood2, #a8713b), var(--ks-wood1, #7a4a22));
+	box-shadow: 0 6px 18px rgba(0, 0, 0, 0.25);
+}
+.ks-stage {
+	position: relative;
+	aspect-ratio: 16 / 9;
+	overflow: hidden;
+	border-radius: 4px;
+	background: #fff;
+	cursor: pointer;
+}
+.ks-card {
+	position: absolute;
+	inset: 0;
+	background: #fff;
+}
+.ks-card svg {
+	display: block;
+	width: 100%;
+	height: 100%;
+}
+
+/* 次へ: 今の絵を右へ引き抜く。前へ: 前の絵を右から差し込む */
+.ks-card.is-pull {
+	z-index: 2;
+	box-shadow: -10px 0 16px rgba(0, 0, 0, 0.25);
+	animation: ks-pull var(--ks-pull, 700ms) ease-in forwards;
+}
+.ks-card.is-insert {
+	z-index: 2;
+	box-shadow: -10px 0 16px rgba(0, 0, 0, 0.25);
+	animation: ks-insert var(--ks-pull, 700ms) ease-out forwards;
+}
+@keyframes ks-pull {
+	to { transform: translateX(105%); }
+}
+@keyframes ks-insert {
+	from { transform: translateX(105%); }
+	to { transform: translateX(0); }
+}
+@media (prefers-reduced-motion: reduce) {
+	.ks-card.is-pull, .ks-card.is-insert { animation-duration: 1ms; }
+}
+
+.ks-start {
+	position: absolute;
+	left: 50%;
+	bottom: 6%;
+	z-index: 5;
+	transform: translateX(-50%);
+	padding: 0.35em 1.6em;
+	border: 3px solid #fff;
+	border-radius: 999px;
+	background: linear-gradient(100deg, #a8284e, #d9607f);
+	color: #fff;
+	font: inherit;
+	font-size: clamp(18px, 2.4vw, 30px);
+	font-weight: 700;
+	cursor: pointer;
+	box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+}
+.ks-start[hidden] { display: none; }
+
+/* 字幕と操作 */
+.ks-caption {
+	min-height: 3.8em;
+	margin: 18px 0 0;
+	padding: 14px 20px;
+	border: 2px solid #e2d6bc;
+	border-radius: 10px;
+	background: #fff;
+	color: var(--ks-ink, #1c2330);
+	font-size: clamp(17px, 2vw, 24px);
+	line-height: 1.7;
+}
+/* 読んでいる文に色を付け、読み終えた部分は薄くする */
+.ks-caption .ks-now {
+	background: #fdeef2;
+	color: #a8284e;
+	font-weight: 700;
+}
+.ks-caption .ks-said {
+	background: transparent;
+	color: #4a5568;
+}
+.ks-voice {
+	margin: 8px 0 0;
+	text-align: center;
+	font-size: 0.85em;
+	background: transparent;
+	color: #4a5568;
+}
+.ks-voice select {
+	font: inherit;
+	padding: 1px 6px;
+	border: 1px solid #c9ced8;
+	border-radius: 6px;
+	background: #fff;
+	color: var(--ks-ink, #1c2330);
+	cursor: pointer;
+}
+.ks-controls {
+	display: flex;
+	justify-content: center;
+	align-items: center;
+	gap: 18px;
+	margin-top: 14px;
+}
+.ks-nav {
+	width: 2.4em;
+	height: 1.7em;
+	border: none;
+	border-radius: 8px;
+	background: linear-gradient(100deg, var(--ks-navy1, #12224d), var(--ks-navy2, #2f5fbf));
+	color: #fff;
+	font: inherit;
+	font-size: 1.6em;
+	font-weight: 700;
+	line-height: 1;
+	cursor: pointer;
+}
+.ks-nav:disabled {
+	background: #c9ced8;
+	color: #4a5568;
+	cursor: default;
+}
+.ks-page {
+	min-width: 5em;
+	text-align: center;
+	font-weight: 700;
+	background: transparent;
+	color: var(--ks-ink, #1c2330);
+}
