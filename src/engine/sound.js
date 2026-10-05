@@ -12,7 +12,7 @@
 
 	const MASTER = 0.9;	// 全体の音量
 	const BGM_VOL = 0.5;	// BGM の音量（全体に対して）
-	const DUCK = 0.3;	// 読み上げ中の BGM は、この割合まで下げる
+	const DUCK = 0.7;	// 読み上げ中の BGM は、この割合まで下げる（0.3 では聞こえなかった）
 
 	let ctx = null;
 	let master = null;
