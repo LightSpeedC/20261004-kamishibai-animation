@@ -134,10 +134,31 @@ body {
 	background: transparent;
 	color: #4a5568;
 }
-.ks-voice {
-	margin: 8px 0 0;
-	text-align: center;
+/* 「音」「読み上げ」のボタンと、読み上げの声 */
+.ks-options {
+	display: flex;
+	flex-wrap: wrap;
+	justify-content: center;
+	align-items: center;
+	gap: 8px 12px;
+	margin: 10px 0 0;
 	font-size: 0.85em;
+}
+.ks-toggle {
+	padding: 2px 12px;
+	border: 1px solid #c9ced8;
+	border-radius: 999px;
+	background: #fff;
+	color: var(--ks-ink, #1c2330);
+	font: inherit;
+	font-weight: 700;
+	cursor: pointer;
+}
+.ks-toggle[aria-pressed="false"] {
+	background: #eceff3;
+	color: #4a5568;
+}
+.ks-voice {
 	background: transparent;
 	color: #4a5568;
 }

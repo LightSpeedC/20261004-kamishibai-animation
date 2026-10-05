@@ -14,13 +14,25 @@
 		return text.match(/[^。！？]+[。！？」]*/g) || [];
 	}
 
-	// pos 文字目まで読んだとき、その句の終わり（「、」「。」の直後）の位置を返す
-	// 字幕の色の境目は、声が次の句に入るまでここで待つ
-	function phraseEnd(s, pos) {
+	// 文の中の句の終わり（「、」「。」の直後）の位置を、順に並べて返す。最後は文の終わり
+	function phraseEnds(s) {
+		const ends = [];
 		const m = /[、。！？]+」?/g;
-		m.lastIndex = Math.max(0, pos - 1);
-		const hit = m.exec(s);
-		return hit ? hit.index + hit[0].length : s.length;
+		let hit;
+		while ((hit = m.exec(s)) !== null) ends.push(hit.index + hit[0].length);
+		if (ends.length === 0 || ends[ends.length - 1] < s.length) ends.push(s.length);
+		return ends;
+	}
+
+	// 読む文 read を pos 文字目まで読んだとき、字幕の文 shown のどこまで色を変えるかを返す
+	// 色の境目は、読んでいる句の終わりまで進め、声が次の句に入るまでそこで待つ。
+	// 読みを変えた文（read）でも「、」「。」の数は字幕と同じなので、何番目の句かで対応させる
+	function captionEnd(shown, read, pos) {
+		const readEnds = phraseEnds(read);
+		let k = readEnds.findIndex((e) => e >= pos);
+		if (k < 0) k = readEnds.length - 1;
+		const shownEnds = phraseEnds(shown);
+		return shownEnds[Math.min(k, shownEnds.length - 1)];
 	}
 
 	function el(tag, cls, text) {
@@ -42,10 +54,14 @@
 		setTimeout(finish, PULL_MS + 300);
 	}
 
-	// story: { title, cover: 表紙の SVG, scenes: [{ text: 字幕, read: 読み（省くと字幕を読む）, svg: 絵 }] }
+	// story: { title, cover: 表紙の SVG, bgm: BGM の曲（sound.js の startBgm を参照）,
+	//   scenes: [{ text: 字幕, read: 読み（省くと字幕を読む）, svg: 絵, sounds: [{ name: 効果音, at: 秒 }], bgm: 'fast'（速い BGM） }] }
 	// read は音声合成が読み違える語だけをかなにした文。字幕と同じ数の文にする
+	// 効果音と BGM は sound.js（window.KamishibaiSound）を先に読み込んだときだけ鳴らす
 	function start(story, root = document.body) {
 		const speech = window.KamishibaiSpeech || null;
+		const sound = window.KamishibaiSound || null;
+		let speechOn = true;	// 「読み上げ」ボタンで切り替える
 		document.title = story.title;
 		// 0 番目が表紙。1 番目からが場面
 		const pages = [{ svg: story.cover, text: '' }].concat(story.scenes);
@@ -76,17 +92,49 @@
 		const page = el('span', 'ks-page');
 		const controls = el('div', 'ks-controls');
 		controls.append(first, prev, page, next);
-		const voiceInfo = el('p', 'ks-voice');
+		// 「音」（効果音と BGM）と「読み上げ」を別々に消せるボタン。押すたびにオン・オフが替わる
+		const soundButton = el('button', 'ks-toggle ks-sound');
+		const speechButton = el('button', 'ks-toggle ks-speech');
+		const voiceInfo = el('span', 'ks-voice');
+		const options = el('div', 'ks-options');
+		if (sound !== null) options.append(soundButton);
+		options.append(speechButton, voiceInfo);
 
 		const main = el('main', 'ks-main');
-		main.append(frame, caption, controls, voiceInfo);
+		main.append(frame, caption, controls, options);
 		root.append(header, main);
 
 		let token = 0;	// 読み上げの回。場面が変わったら増やし、前の回の合図を捨てる
 		let timer = null;
 
-		function speechReady() {
+		function voiceAvailable() {
 			return speech !== null && speech.ready();
+		}
+
+		function speechReady() {
+			return speechOn && voiceAvailable();
+		}
+
+		function renderToggles() {
+			const on = sound !== null && sound.isEnabled();
+			soundButton.textContent = '音: ' + (on ? 'オン' : 'オフ');
+			soundButton.setAttribute('aria-pressed', String(on));
+			speechButton.textContent = '読み上げ: ' + (speechOn ? 'オン' : 'オフ');
+			speechButton.setAttribute('aria-pressed', String(speechOn));
+		}
+
+		// 場面に入ったときの音。表紙では BGM を止める。13 場面のように bgm: 'fast' の場面だけ速くする
+		function soundScene() {
+			if (sound === null) return;
+			sound.clearScheduled();
+			if (current === 0) {
+				sound.stopBgm();
+				return;
+			}
+			const scene = pages[current];
+			// 最初の場面では、拍子木が鳴り終わってから BGM を始める
+			sound.startBgm(story.bgm, { fast: scene.bgm === 'fast', delay: 0.8 });
+			sound.schedule(scene.sounds || []);
 		}
 
 		// 字幕を文ごとに出す。now 番目の文を読んでいる途中で、pos 文字目まで読んだ
@@ -106,6 +154,7 @@
 			clearTimeout(timer);
 			timer = null;
 			if (speech) speech.cancel();
+			if (sound) sound.duck(false);
 		}
 
 		// 今の場面を読み、読み終えたら次の場面へ送る
@@ -120,6 +169,7 @@
 
 			const finish = () => {
 				if (my !== token) return;
+				if (sound) sound.duck(false);
 				caption.textContent = scene.text;
 				if (current >= pages.length - 1) return;
 				const wait = Math.max(AFTER_MS, enteredAt + MIN_SCENE_MS - Date.now());
@@ -134,6 +184,8 @@
 				return;
 			}
 
+			// 読み上げ中は BGM を小さくする
+			if (sound) sound.duck(true);
 			let i = 0;
 			const step = () => {
 				if (my !== token) return;
@@ -144,9 +196,8 @@
 				const k = i;
 				renderCaption(shown, k, 0);
 				speech.speak(read[k], {
-					// 読みを変えた文は、文字の位置が字幕と合わないため、文の単位で色を付ける
 					onboundary: (pos) => {
-						if (my === token && read[k] === shown[k]) renderCaption(shown, k, phraseEnd(shown[k], pos));
+						if (my === token) renderCaption(shown, k, captionEnd(shown[k], read[k], pos));
 					},
 					onend: () => {
 						i++;
@@ -177,15 +228,17 @@
 		// 一覧を開いている間に作り直すと閉じてしまうため、声の一覧が変わったときだけ作り直す
 		function renderVoice() {
 			voiceInfo.textContent = '';
-			if (!speechReady()) {
-				voiceInfo.textContent = '読み上げ: なし（字幕だけで進む）';
+			if (!voiceAvailable()) {
+				voiceInfo.textContent = '声: なし（字幕だけで進む）';
 				return;
 			}
-			const label = el('label', null, '読み上げ: ');
+			// 見出しは「声」。隣の「読み上げ」ボタンと同じ言葉にしない
+			const label = el('label', null, '声: ');
 			const select = el('select');
 			select.setAttribute('aria-label', '読み上げの声');
 			for (const v of speech.voices()) {
-				const o = el('option', null, v.name + '（' + (v.local ? 'PC 内' : 'ネット') + '）');
+				// 「内蔵」は PC・スマホに入っていて、ネットに繋がずに動く声
+				const o = el('option', null, v.name + '（' + (v.local ? '内蔵' : 'ネット') + '）');
 				o.value = v.name;
 				select.append(o);
 			}
@@ -199,6 +252,8 @@
 		}
 
 		function go(to) {
+			// 音は操作の中でしか出せるようにならないため、送りの操作のたびに呼んでおく
+			if (sound) sound.unlock();
 			if (busy || to < 0 || to >= pages.length || to === current) return;
 			busy = true;
 			const oldCard = stage.querySelector('.ks-card');
@@ -207,6 +262,7 @@
 			current = to;
 			render();
 			narrate();
+			soundScene();
 			if (forward) {
 				// 次へ: 新しい絵を下に置き、今の絵を右へ引き抜く
 				stage.insertBefore(newCard, oldCard);
@@ -236,6 +292,19 @@
 		first.addEventListener('click', () => go(0));
 		prev.addEventListener('click', () => go(current - 1));
 		next.addEventListener('click', () => go(current + 1));
+		// 音を消すと、鳴らす予定の効果音と BGM も止める。点け直したら、今の場面の BGM から鳴らす
+		soundButton.addEventListener('click', () => {
+			sound.unlock();
+			sound.setEnabled(!sound.isEnabled());
+			if (sound.isEnabled()) soundScene();
+			renderToggles();
+		});
+		// 読み上げを消すと、字幕だけで時間をおいて送る。点け直したら、今の場面を頭から読む
+		speechButton.addEventListener('click', () => {
+			speechOn = !speechOn;
+			renderToggles();
+			if (current !== 0) narrate();
+		});
 		document.addEventListener('keydown', (e) => {
 			if (e.altKey || e.ctrlKey || e.metaKey) return;
 			// 声の一覧などの入力欄では、矢印キーをその欄の操作に使う
@@ -246,6 +315,7 @@
 
 		stage.append(card(0), startButton);
 		render();
+		renderToggles();
 		// 声の一覧が後から届いたら、表示を直す
 		renderVoice();
 		if (speech !== null) speech.onVoicesChanged(renderVoice);

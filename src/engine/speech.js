@@ -38,7 +38,7 @@
 		}
 	}
 
-	// 選んで残した声を使う。無ければ PC の中で動く日本語の声、それも無ければネットの日本語の声
+	// 選んで残した声を使う。無ければ内蔵の（PC・スマホの中で動く）日本語の声、それも無ければネットの日本語の声
 	function pick() {
 		jaVoices = synth.getVoices().filter((v) => v.lang.replace('_', '-').toLowerCase().startsWith('ja'));
 		const saved = loadName();
@@ -57,7 +57,7 @@
 		return voice ? voice.name : '';
 	}
 
-	// 選べる日本語の声。local は PC の中で動くか
+	// 選べる日本語の声。local は内蔵の声（PC・スマホの中で動く）か
 	function voices() {
 		return jaVoices.map((v) => ({ name: v.name, local: v.localService }));
 	}

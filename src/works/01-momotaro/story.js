@@ -430,10 +430,16 @@
 		${mouth}`;
 	}
 
-	// 犬。右を向き、足元を原点に描く。尾を振る
-	function dog() {
+	// 犬。右を向き、足元を原点に描く。尾を振る。lookUp: 首を上げて右上を見上げる
+	function dog({ lookUp = false } = {}) {
 		const FUR = '#e3a24f';
 		const CREAM = '#fbe8c8';
+		const head = `<path d="M52 -146 L60 -186 L80 -150 Z M88 -152 L106 -184 L112 -144 Z" fill="${FUR}" ${L4}/>
+		<circle cx="80" cy="-116" r="42" fill="${FUR}" ${L}/>
+		<ellipse cx="108" cy="-100" rx="24" ry="17" fill="${CREAM}" ${L4}/>
+		<circle cx="128" cy="-106" r="7" fill="${O}"/>
+		<circle cx="86" cy="-126" r="6" fill="${O}"/>
+		<path d="M104 -88 q8 8 18 0" fill="none" stroke="${O}" stroke-width="4" stroke-linecap="round"/>`;
 		return `<g transform="translate(-66 -84)"><g>${loop('rotate', '-15;20;-15', '0.4s')}
 			<path d="M0 0 C-26 -6 -36 -40 -10 -48" fill="none" stroke="${O}" stroke-width="22" stroke-linecap="round"/>
 			<path d="M0 0 C-26 -6 -36 -40 -10 -48" fill="none" stroke="${FUR}" stroke-width="14" stroke-linecap="round"/>
@@ -444,12 +450,7 @@
 		<rect x="46" y="-48" width="22" height="48" rx="8" fill="${FUR}" ${L4}/>
 		<ellipse cx="0" cy="-70" rx="74" ry="38" fill="${FUR}" ${L}/>
 		<ellipse cx="10" cy="-56" rx="44" ry="16" fill="${CREAM}"/>
-		<path d="M52 -146 L60 -186 L80 -150 Z M88 -152 L106 -184 L112 -144 Z" fill="${FUR}" ${L4}/>
-		<circle cx="80" cy="-116" r="42" fill="${FUR}" ${L}/>
-		<ellipse cx="108" cy="-100" rx="24" ry="17" fill="${CREAM}" ${L4}/>
-		<circle cx="128" cy="-106" r="7" fill="${O}"/>
-		<circle cx="86" cy="-126" r="6" fill="${O}"/>
-		<path d="M104 -88 q8 8 18 0" fill="none" stroke="${O}" stroke-width="4" stroke-linecap="round"/>
+		${lookUp ? `<g transform="rotate(-28 62 -90)">${head}</g>` : head}
 		<path d="M46 -86 Q68 -72 94 -80" fill="none" stroke="#c0392b" stroke-width="9" stroke-linecap="round"/>`;
 	}
 
@@ -702,7 +703,7 @@
 	function scene11() {
 		return svg(`
 		${road()}
-		${place(300, 850, 0.85, dog())}
+		${place(300, 850, 0.85, dog({ lookUp: true }))}
 		${place(560, 850, 1, momotaro({ arms: 'right', hachimaki: true, flag: true, dango: true }))}
 		${place(800, 850, 0.8, monkey({ reach: true }))}
 		<g transform="translate(1520 110)"><g>${once('translate', '0 0;-450 420', '2.5s')}
@@ -734,27 +735,35 @@
 		`);
 	}
 
-	// 13. 鬼ヶ島で戦い、鬼の大将をやっつける
+	// 13. 鬼ヶ島で戦い、桃太郎が鬼の大将を持ち上げて投げ飛ばす
+	// 桃太郎が駆け寄り（〜1.4 秒）、大将を横にして頭の上へ持ち上げ（〜2.2 秒）、
+	// そのまま頭の上で止め（〜2.8 秒）、回しながら右上へ投げる（〜3.8 秒）
 	function scene13() {
-		const HIT = '2.2s';	// 桃太郎が大将にぶつかる時点
+		const LIFT = '2.2s';	// 大将を持ち上げ終える時点
+		const THROW = '3.8s';	// 大将を投げ終える時点
+		// 大将の動き。keyTimes は 0 / 1.4 / 2.2 / 2.8 / 3.8 秒。回すのは体の中ほど（足元から 220 上）を中心にする
+		const KEYS = 'keyTimes="0;0.37;0.58;0.74;1" dur="3.8s" fill="freeze"';
+		const bossMove = `<animateTransform attributeName="transform" type="translate" values="0 0;0 0;-180 -180;-180 -200;420 -380" ${KEYS}/>`;
+		const bossTurn = `<animateTransform attributeName="transform" type="rotate" values="0 0 -220;0 0 -220;-90 0 -220;-90 0 -220;-450 0 -220" ${KEYS}/>`;
 		return svg(`
 		${onigashima()}
 		${place(450, 860, 0.85, oni({ color: '#3b6fc4' }))}
 		${place(450, 520, 0.55, monkey({ reach: true }), loop('translate', '-8 0;8 0;-8 0', '0.3s'))}
 		<g>${blink('0s', '0.6s')}<path d="M540 520 l40 -30 M548 548 l44 -30 M556 576 l40 -30" stroke="${O}" stroke-width="6" stroke-linecap="round"/></g>
+		<g transform="translate(330 420)"><g>${loop('translate', '0 0;24 12;0 0', '0.45s')}${kiji({ fly: true })}</g></g>
 		${place(250, 860, 0.8, dog(), loop('translate', '0 0;10 -6;0 0', '0.35s'))}
 		<g>${blink('0s', '0.8s')}${text(300, 640, 52, 'ガブッ', '#c0392b')}</g>
-		<g transform="translate(1180 870)"><g>${once('translate', '0 0;80 0', '0.4s', HIT)}<g>${once('rotate', '0;14', '0.4s', HIT)}
-			${place(0, 0, 1, oni({ boss: true }))}
-		</g></g></g>
-		<g transform="translate(990 330)"><g>${loop('translate', '0 0;24 12;0 0', '0.45s')}${kiji({ fly: true })}</g></g>
-		<g transform="translate(800 870)"><g>${once('translate', '0 0;90 -140;170 -40', '0.8s', '1.4s')}
+		<g transform="translate(800 870)"><g>${once('translate', '0 0;200 0', '1.4s')}
 			${place(0, 0, 1, momotaro({ arms: 'up', hachimaki: true }))}
 		</g></g>
-		<g opacity="0">${appear(HIT)}${text(1200, 230, 110, 'ドカーン', '#c0392b')}</g>
-		${sparkle(1150, 330, '2.5s')}
-		${sparkle(1300, 360, '2.8s')}
-		<g opacity="0">${blink(HIT, '0.7s')}<ellipse cx="1100" cy="860" rx="90" ry="30" fill="#d8d0c4" ${L4}/><ellipse cx="1300" cy="870" rx="80" ry="26" fill="#d8d0c4" ${L4}/></g>
+		<g transform="translate(1180 870)"><g>${bossMove}<g>${bossTurn}
+			${place(0, 0, 1, oni({ boss: true }))}
+		</g></g></g>
+		<g opacity="0">${appear(LIFT)}${text(780, 300, 64, 'えいっ！', '#c0392b')}<set attributeName="opacity" to="0" begin="${THROW}" fill="freeze"/></g>
+		<g opacity="0">${appear(THROW)}${text(1180, 230, 110, 'ドカーン', '#c0392b')}</g>
+		${sparkle(1450, 300, '3.9s')}
+		${sparkle(1300, 380, '4.2s')}
+		<g opacity="0">${blink(LIFT, '0.7s')}<ellipse cx="920" cy="870" rx="90" ry="28" fill="#d8d0c4" ${L4}/><ellipse cx="1080" cy="875" rx="80" ry="24" fill="#d8d0c4" ${L4}/></g>
 		`);
 	}
 
@@ -797,34 +806,60 @@
 		`);
 	}
 
+	// BGM: 唱歌「桃太郎」（作曲 岡野貞一、1911 年）の 1 番の旋律。ハ長調。[ラからの半音数（null は休み）, 拍数]
+	const C4 = -9, D4 = -7, E4 = -5, G4 = -2, A4 = 0, C5 = 3;
+	const C3 = -21, F2 = -28, G2 = -26;
+	const BGM = {
+		melody: [
+			[G4, 1.5], [A4, 0.5], [G4, 0.5], [G4, 0.5], [E4, 1],	// ももたろさん
+			[G4, 0.5], [G4, 0.5], [E4, 0.5], [C4, 0.5], [D4, 2],	// ももたろさん
+			[C4, 0.5], [C4, 0.5], [D4, 0.5], [D4, 0.5], [E4, 0.5], [E4, 0.5], [D4, 1],	// おこしにつけた
+			[E4, 0.5], [E4, 0.5], [A4, 0.5], [A4, 0.5], [G4, 2],	// きびだんご
+			[C5, 0.5], [C5, 0.5], [G4, 1], [E4, 0.5], [E4, 0.5], [A4, 0.5], [A4, 0.5],	// ひとつわたしに
+			[G4, 0.5], [G4, 0.5], [E4, 0.5], [D4, 0.5], [C4, 2],	// くださいな
+			[null, 2],	// 繰り返す前の間
+		],
+		// 低い音。2 拍ずつ
+		bass: [
+			[C3, 2], [C3, 2], [C3, 2], [G2, 2], [C3, 2], [G2, 2],
+			[C3, 2], [G2, 2], [C3, 2], [F2, 2], [G2, 2], [C3, 2],
+			[null, 2],
+		],
+		beat: 0.5,	// 1 拍の秒数
+		fastBeat: 0.33,	// 13 場面（戦い）の 1 拍の秒数
+	};
+
 	window.STORY = {
 		title: '桃太郎',
 		cover: cover(),
+		bgm: BGM,
 		scenes: [
-			{ text: 'むかしむかし、ある所に、おじいさんとおばあさんが住んでいました。', svg: scene1() },
-			{ text: 'おじいさんは山へしばかりに、おばあさんは川へせんたくに行きました。', svg: scene2() },
-			{ text: 'おばあさんが川でせんたくをしていると、川上から大きな桃が、どんぶらこ、どんぶらこと流れてきました。', svg: scene3() },
-			{ text: 'おばあさんは桃を家に持ち帰りました。おじいさんが包丁で切ろうとすると、桃がぱかっと割れて、中から元気な男の赤ちゃんが生まれました。', svg: scene4() },
+			{ text: 'むかしむかし、ある所に、おじいさんとおばあさんが住んでいました。', svg: scene1(), sounds: [{ name: 'hyoshigi', at: 0 }] },
+			{ text: 'おじいさんは山へしばかりに、おばあさんは川へせんたくに行きました。', svg: scene2(), sounds: [{ name: 'bird', at: 1 }, { name: 'bird', at: 3.5 }] },
+			{ text: 'おばあさんが川でせんたくをしていると、川上から大きな桃が、どんぶらこ、どんぶらこと流れてきました。', svg: scene3(), sounds: [{ name: 'water', at: 0 }, { name: 'donburako', at: 0.5 }] },
+			{ text: 'おばあさんは桃を家に持ち帰りました。おじいさんが包丁で切ろうとすると、桃がぱかっと割れて、中から元気な男の赤ちゃんが生まれました。', svg: scene4(), sounds: [{ name: 'pakka', at: 2 }, { name: 'kirakira', at: 2.3 }] },
 			{ text: '桃から生まれたので、二人はこの子を「桃太郎」と名づけました。', svg: scene5() },
-			{ text: '桃太郎はすくすくと育ち、村いちばんの力持ちになりました。', svg: scene6() },
-			{ text: 'ある日、海の向こうの鬼ヶ島から鬼がやってきて、村を荒らしては宝物を奪っていくと聞きました。', svg: scene7() },
+			{ text: '桃太郎はすくすくと育ち、村いちばんの力持ちになりました。', svg: scene6(), sounds: [{ name: 'dosun', at: 0.3 }, { name: 'dosun', at: 1.7 }] },
+			{ text: 'ある日、海の向こうの鬼ヶ島から鬼がやってきて、村を荒らしては宝物を奪っていくと聞きました。', svg: scene7(), sounds: [{ name: 'kaminari', at: 0.5 }] },
 			{
 				text: '「わたしが鬼を退治してきます」。おばあさんは、日本一のきびだんごをこしらえて持たせてくれました。',
 				// 「日本一」は「にほんいち」と読まれる。昔話の読みの「にっぽんいち」にする
 				read: '「わたしが鬼を退治してきます」。おばあさんは、にっぽんいちのきびだんごをこしらえて持たせてくれました。',
 				svg: scene8(),
 			},
-			{ text: 'しばらく行くと、犬がやってきました。「桃太郎さん、お腰につけたきびだんご、一つわたしにくださいな」。きびだんごをもらった犬は、家来になりました。', svg: scene9() },
-			{ text: 'つぎに、猿がやってきました。「桃太郎さん、お腰につけたきびだんご、一つわたしにくださいな」。きびだんごをもらった猿も、家来になりました。', svg: scene10() },
-			{ text: 'そのあと、きじが飛んできました。「桃太郎さん、お腰につけたきびだんご、一つわたしにくださいな」。きびだんごをもらったきじも、家来になりました。', svg: scene11() },
-			{ text: '桃太郎たちは船に乗って、鬼ヶ島へ向かいました。', svg: scene12() },
-			{ text: '鬼ヶ島に着くと、犬はかみつき、猿はひっかき、きじはつつき、桃太郎は鬼の大将をやっつけました。', svg: scene13() },
-			{ text: '「まいりました。もう悪いことはしません」。鬼たちは、奪った宝物を差し出しました。', svg: scene14() },
+			{ text: 'しばらく行くと、犬がやってきました。「桃太郎さん、お腰につけたきびだんご、一つわたしにくださいな」。きびだんごをもらった犬は、家来になりました。', svg: scene9(), sounds: [{ name: 'wan', at: 1.2 }] },
+			{ text: 'つぎに、猿がやってきました。「桃太郎さん、お腰につけたきびだんご、一つわたしにくださいな」。きびだんごをもらった猿も、家来になりました。', svg: scene10(), sounds: [{ name: 'kiki', at: 1.6 }] },
+			{ text: 'そのあと、きじが飛んできました。「桃太郎さん、お腰につけたきびだんご、一つわたしにくださいな」。きびだんごをもらったきじも、家来になりました。', svg: scene11(), sounds: [{ name: 'ken', at: 2 }] },
+			{ text: '桃太郎たちは船に乗って、鬼ヶ島へ向かいました。', svg: scene12(), sounds: [{ name: 'nami', at: 0 }, { name: 'nami', at: 3 }] },
+			{ text: '鬼ヶ島に着くと、犬はかみつき、猿はひっかき、きじはつつき、桃太郎は鬼の大将をやっつけました。', svg: scene13(), bgm: 'fast', sounds: [{ name: 'dosun', at: 2.2 }, { name: 'dokan', at: 3.8 }] },
+			{ text: '「まいりました。もう悪いことはしません」。鬼たちは、奪った宝物を差し出しました。', svg: scene14(), sounds: [{ name: 'kirakira', at: 0.3 }] },
 			{
 				text: '桃太郎は宝物を持って村へ帰り、村の人たちに返しました。おじいさんもおばあさんも、村の人たちも、みんな大喜びしました。めでたし、めでたし。',
 				// 「大喜び」は「だいよろこび」と読まれる
 				read: '桃太郎は宝物を持って村へ帰り、村の人たちに返しました。おじいさんもおばあさんも、村の人たちも、みんなおおよろこびしました。めでたし、めでたし。',
 				svg: scene15(),
+				// 「めでたし めでたし」が出たら拍子木を打ち、BGM を消していく
+				sounds: [{ name: 'kirakira', at: 6 }, { name: 'hyoshigi', at: 7 }, { name: 'bgm-fade', at: 8 }],
 			},
 		],
 	};

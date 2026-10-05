@@ -8,7 +8,8 @@ import { pathToFileURL } from 'url';
 // （Page.captureScreenshot: Unable to capture screenshot。単独なら通る）
 test.describe.configure({ mode: 'default' });
 
-const ROOT = path.resolve(process.env.MY_PLAYWRIGHT_TEST_DIR ?? '', '..');
+// プロジェクトのフォルダ。このファイル（tests/）の 1 つ上
+const ROOT = path.resolve(__dirname, '..');
 const WORK = pathToFileURL(path.join(ROOT, 'src/works/01-momotaro/index.html')).href;
 const SHOTS = path.join(ROOT, 'tmp/screens');
 
@@ -46,12 +47,12 @@ function uttered(sentence: string): string {
 }
 
 // 場面ごとに、動きが一段落するまで待ってから撮る
-// （3 は桃が流れ着くまで、4 は桃が割れるまで、15 は車が止まって「めでたし」が出るまで）
-const SETTLE_MS = [2500, 6500, 7500, 3500, 3000, 3000, 3000, 3000, 3000, 3000, 3500, 3000, 3500, 3000, 7000];
+// （3 は桃が流れ着くまで、4 は桃が割れるまで、13 は大将を投げ終えるまで、15 は車が止まって「めでたし」が出るまで）
+const SETTLE_MS = [2500, 6500, 7500, 3500, 3000, 3000, 3000, 3000, 3000, 3000, 3500, 3000, 5000, 3000, 7000];
 
 type Voice = { name: string; lang: string; localService: boolean };
 const ONE_VOICE: Voice[] = [{ name: 'テストの声', lang: 'ja-JP', localService: true }];
-// 日本語の声が PC 内とネットに 1 つずつ。英語の声は一覧に出ないこと
+// 日本語の声が内蔵とネットに 1 つずつ。英語の声は一覧に出ないこと
 const THREE_VOICES: Voice[] = [
 	{ name: '声A', lang: 'ja-JP', localService: true },
 	{ name: '声B', lang: 'ja-JP', localService: false },
@@ -60,8 +61,9 @@ const THREE_VOICES: Voice[] = [
 
 // 読み上げを差し替える。本物の声は、テストの環境ごとに有無も読む長さも変わるため
 // voices: ブラウザにある声 / endMs: 1 文を読み終えるまでの時間（null は読み終わらない）
+// holdIf: この語を含む文だけは読み終わらない（その文を読んでいる途中の字幕を見るため）
 // 読んだ文を __spoken に、読んだ声の名前を __voices に残す
-async function mockSpeech(page: Page, opts: { voices: Voice[]; endMs: number | null }) {
+async function mockSpeech(page: Page, opts: { voices: Voice[]; endMs: number | null; holdIf?: string }) {
 	await page.addInitScript((o) => {
 		const w = window as any;
 		w.__spoken = [];
@@ -85,7 +87,7 @@ async function mockSpeech(page: Page, opts: { voices: Voice[]; endMs: number | n
 				setTimeout(() => {
 					if (cur === u && u.onboundary && comma >= 0) u.onboundary({ charIndex: comma, charLength: 1 });
 				}, 30);
-				if (o.endMs !== null) {
+				if (o.endMs !== null && !(o.holdIf && u.text.includes(o.holdIf))) {
 					u.__timer = setTimeout(() => {
 						if (cur !== u) return;
 						cur = null;
@@ -120,7 +122,9 @@ test('表紙から「はじまり」と矢印キーで全 15 場面を送り、�
 	await expect(page).toHaveTitle('桃太郎');
 	await expect(page.locator('.ks-page')).toHaveText('表紙');
 	await expect(page.locator('.ks-start')).toBeVisible();
-	await page.screenshot({ path: path.join(SHOTS, 'momotaro-00.png') });
+	// ブラウザごとにフォルダを分ける（tmp/screens/chromium/ ・ tmp/screens/webkit/）。同じ名前だと後に終わった方で上書きされる
+	const shots = path.join(SHOTS, test.info().project.name);
+	await page.screenshot({ path: path.join(shots, 'momotaro-00.png') });
 
 	await page.locator('.ks-start').click();
 	for (let i = 0; i < TEXTS.length; i++) {
@@ -130,7 +134,7 @@ test('表紙から「はじまり」と矢印キーで全 15 場面を送り、�
 		await page.waitForTimeout(SETTLE_MS[i]);
 		// 引き抜きが終われば、舞台に残る絵は 1 枚だけ
 		await expect(page.locator('.ks-card')).toHaveCount(1);
-		await page.screenshot({ path: path.join(SHOTS, `momotaro-${String(i + 1).padStart(2, '0')}.png`) });
+		await page.screenshot({ path: path.join(shots, `momotaro-${String(i + 1).padStart(2, '0')}.png`) });
 	}
 	await expect(page.locator('.ks-start')).toBeHidden();
 
@@ -177,6 +181,21 @@ test('読んでいる文に色が付き、色の境目は読んでいる句の�
 	// （先頭の「っ」の分をずらし忘れると、次の句の「、」まで進んでしまう）
 	await expect(page.locator('.ks-caption .ks-said')).toHaveText('むかしむかし、');
 	await expect(page.locator('.ks-caption .ks-now')).toHaveText(TEXTS[0].slice('むかしむかし、'.length));
+});
+
+test('読み用の文を使った文も、字幕の色は句の順番で対応させて「、」まで進める', async ({ page }) => {
+	// 8 場面目の 2 文目は「日本一」を「にっぽんいち」と読ませるため、字幕と読みで文字の位置がずれる
+	await mockSpeech(page, { voices: ONE_VOICE, endMs: 200, holdIf: 'にっぽんいち' });
+	await page.goto(WORK);
+	await page.locator('.ks-start').click();
+	for (let i = 1; i < 8; i++) {
+		await expect(page.locator('.ks-card')).toHaveCount(1);
+		await page.keyboard.press('ArrowRight');
+	}
+	await expect(page.locator('.ks-page')).toHaveText(`8 / ${N}`);
+	// 「っおばあさんは、」の「、」まで読んだ合図で、字幕は「おばあさんは、」まで色が変わる
+	await expect(page.locator('.ks-caption .ks-said')).toHaveText(['「わたしが鬼を退治してきます」。', 'おばあさんは、']);
+	await expect(page.locator('.ks-caption .ks-now')).toHaveText('日本一のきびだんごをこしらえて持たせてくれました。');
 });
 
 test('手で送ると、読み上げを止めて、新しい場面を読み直す', async ({ page }) => {
@@ -227,12 +246,13 @@ test('日本語の声が無いときは、字幕だけで時間をおいて次�
 	expect(await page.evaluate(() => (window as any).__spoken)).toEqual([]);
 });
 
-test('声の名前から一覧を開き、日本語の声だけが「PC 内」「ネット」の別つきで並ぶ', async ({ page }) => {
+// 「PC 内」はスマホで合わないため「内蔵」にした（iPhone では「Kyoko（PC 内）」と出ていた）
+test('声の名前から一覧を開き、日本語の声だけが「内蔵」「ネット」の別つきで並ぶ', async ({ page }) => {
 	await mockSpeech(page, { voices: THREE_VOICES, endMs: null });
 	await page.goto(WORK);
 	const options = page.locator('.ks-voice select option');
-	await expect(options).toHaveText(['声A（PC 内）', '声B（ネット）']);
-	// 何も選んでいなければ、PC 内の声が選ばれている
+	await expect(options).toHaveText(['声A（内蔵）', '声B（ネット）']);
+	// 何も選んでいなければ、内蔵の声が選ばれている
 	await expect(page.locator('.ks-voice select')).toHaveValue('声A');
 });
 
@@ -260,7 +280,7 @@ test('選んだ声を覚えていて、開き直してもその声で読む', as
 	await expect.poll(() => page.evaluate(() => (window as any).__voices)).toEqual(['声B']);
 });
 
-test('覚えていた声が無くなっていたら、PC 内の声を選び直す', async ({ page }) => {
+test('覚えていた声が無くなっていたら、内蔵の声を選び直す', async ({ page }) => {
 	await mockSpeech(page, { voices: THREE_VOICES, endMs: null });
 	await page.goto(WORK);
 	await page.evaluate(() => localStorage.setItem('kamishibai.voice', '無くなった声'));
@@ -279,6 +299,100 @@ test('声の一覧で矢印キーを押しても、場面は送られない', as
 	await page.keyboard.press('ArrowRight');
 	await page.waitForTimeout(1000);
 	await expect(page.locator('.ks-page')).toHaveText(`1 / ${N}`);
+});
+
+// ---- 効果音と BGM（p261004-02 段階 3） ----
+// 音そのものは聞けないため、sound.js が残す記録（鳴らした音の名前と、BGM・音量下げの状態）で確かめる
+
+// Playwright の Windows 版 WebKit には Web Audio（AudioContext）が無い。iPhone の Safari にはある。
+// Web Audio が無いブラウザでは音を鳴らさずに進む作りのため、音のテストは飛ばす
+test.beforeEach(async ({ page }, testInfo) => {
+	if (!testInfo.title.includes('BGM') && !testInfo.title.includes('効果音')) return;
+	await page.goto(WORK);
+	const hasAudio = await page.evaluate(() => 'AudioContext' in window || 'webkitAudioContext' in window);
+	test.skip(!hasAudio, 'このブラウザには Web Audio が無い');
+});
+
+const soundState = (page: Page) => page.evaluate(() => (window as any).KamishibaiSound.state());
+const soundHistory = (page: Page) => page.evaluate(() => (window as any).KamishibaiSound.history.slice());
+
+// 紙を引き抜き終えてから、次の場面へ送る
+async function forward(page: Page, times: number) {
+	for (let i = 0; i < times; i++) {
+		await expect(page.locator('.ks-card')).toHaveCount(1);
+		await page.keyboard.press('ArrowRight');
+	}
+	await expect(page.locator('.ks-card')).toHaveCount(1);
+}
+
+test('「はじまり」で拍子木が鳴って BGM が始まり、表紙に戻ると BGM が止まる', async ({ page }) => {
+	await mockSpeech(page, { voices: ONE_VOICE, endMs: null });
+	await page.goto(WORK);
+	await page.locator('.ks-start').click();
+	await expect.poll(() => soundHistory(page)).toContain('hyoshigi');
+	await expect.poll(async () => (await soundState(page)).bgm).toBe('normal');
+
+	await expect(page.locator('.ks-card')).toHaveCount(1);
+	await page.locator('.ks-first').click();
+	await expect.poll(async () => (await soundState(page)).bgm).toBe(null);
+});
+
+test('場面ごとの効果音が鳴り、13 場面（戦い）だけ BGM が速くなる', async ({ page }) => {
+	await mockSpeech(page, { voices: ONE_VOICE, endMs: null });
+	await page.goto(WORK);
+	await page.locator('.ks-start').click();
+	await forward(page, 8);
+	await expect(page.locator('.ks-page')).toHaveText(`9 / ${N}`);
+	await expect.poll(() => soundHistory(page)).toContain('wan');
+
+	await forward(page, 4);
+	await expect(page.locator('.ks-page')).toHaveText(`13 / ${N}`);
+	await expect.poll(async () => (await soundState(page)).bgm).toBe('fast');
+	await expect.poll(() => soundHistory(page), { timeout: 8_000 }).toContain('dokan');
+
+	await forward(page, 1);
+	await expect.poll(async () => (await soundState(page)).bgm).toBe('normal');
+});
+
+test('読み上げ中は BGM の音量を下げ、読み終えたら戻す', async ({ page }) => {
+	await mockSpeech(page, { voices: ONE_VOICE, endMs: 400 });
+	await page.goto(WORK);
+	await page.locator('.ks-start').click();
+	await expect.poll(async () => (await soundState(page)).ducked).toBe(true);
+	// 1 場面目は 1 文。読み終えてから次の場面へ送るまで（5 秒）の間に戻る
+	await expect.poll(async () => (await soundState(page)).ducked).toBe(false);
+	await expect(page.locator('.ks-page')).toHaveText(`1 / ${N}`);
+});
+
+test('「音」ボタンで効果音と BGM を止め、もう一度押すと BGM が戻る', async ({ page }) => {
+	await mockSpeech(page, { voices: ONE_VOICE, endMs: null });
+	await page.goto(WORK);
+	await page.locator('.ks-start').click();
+	await expect.poll(async () => (await soundState(page)).bgm).toBe('normal');
+
+	await page.locator('.ks-sound').click();
+	await expect(page.locator('.ks-sound')).toHaveText('音: オフ');
+	await expect(page.locator('.ks-sound')).toHaveAttribute('aria-pressed', 'false');
+	await expect.poll(async () => (await soundState(page)).bgm).toBe(null);
+	expect((await soundState(page)).enabled).toBe(false);
+
+	await page.locator('.ks-sound').click();
+	await expect(page.locator('.ks-sound')).toHaveText('音: オン');
+	await expect.poll(async () => (await soundState(page)).bgm).toBe('normal');
+});
+
+test('「読み上げ」ボタンで読み上げを止め、字幕だけで時間をおいて送る', async ({ page }) => {
+	await mockSpeech(page, { voices: ONE_VOICE, endMs: null });
+	await page.goto(WORK);
+	await page.locator('.ks-start').click();
+	await expect.poll(() => page.evaluate(() => (window as any).__spoken.length)).toBe(1);
+	const canceled = await page.evaluate(() => (window as any).__canceled);
+
+	await page.locator('.ks-speech').click();
+	await expect(page.locator('.ks-speech')).toHaveText('読み上げ: オフ');
+	expect(await page.evaluate(() => (window as any).__canceled)).toBeGreaterThan(canceled);
+	await expect(page.locator('.ks-page')).toHaveText(`2 / ${N}`, { timeout: 15_000 });
+	expect(await page.evaluate(() => (window as any).__spoken.length)).toBe(1);
 });
 
 test('作品一覧から桃太郎へ移れる', async ({ page }) => {
