@@ -204,11 +204,10 @@ footer {
 				<tr><th>成果物</th><th>置き場</th><th>内容</th></tr>
 			</thead>
 			<tbody>
-				<tr><td>紙芝居 HTML</td><td class="nowrap"><code>src/kamishibai/kamishibai.html</code></td><td>3 場面。絵は SVG。場面の切り替え・字幕・簡単な動き（移動・フェード・拡大）</td></tr>
-				<tr><td>台本</td><td class="nowrap"><code>src/kamishibai/script.json</code></td><td>場面ごとのナレーション文。HTML と音声生成の両方がここを読む</td></tr>
-				<tr><td>音声合成のサンプル</td><td class="nowrap"><code>notes/samples/voice-list.ps1</code><br><code>notes/samples/voice-speak.ps1</code><br><code>notes/samples/voice-to-wav.ps1</code><br><code>notes/samples/voice-winrt.ps1</code></td><td>段階 2 の下調べで使ったサンプル。同名の cmd ランチャー付き</td></tr>
-				<tr><td>読み上げ音声</td><td class="nowrap"><code>src/kamishibai/audio/</code></td><td>場面ごとの wav（<code>scene01.wav</code> 〜）</td></tr>
-				<tr><td>音声生成スクリプト</td><td class="nowrap"><code>tools/20_build/make-voice.ps1</code></td><td>台本から Windows 標準の音声合成で wav を書き出す。同名の cmd ランチャーを付ける</td></tr>
+				<tr><td>共通の仕組み</td><td class="nowrap"><code>src/engine/</code></td><td>舞台・字幕・送り（<code>kamishibai.css</code>・<code>player.js</code>）と、ブラウザの読み上げ（<code>speech.js</code>）</td></tr>
+				<tr><td>作品</td><td class="nowrap"><code>src/works/01-momotaro/</code></td><td>桃太郎。15 場面。台本と絵（SVG）は <code>story.js</code> に持つ</td></tr>
+				<tr><td>作品一覧</td><td class="nowrap"><code>src/index.html</code></td><td>作品へのリンク</td></tr>
+				<tr><td>音声合成のサンプル</td><td class="nowrap"><code>notes/samples/voice-list.ps1</code><br><code>notes/samples/voice-speak.ps1</code><br><code>notes/samples/voice-to-wav.ps1</code><br><code>notes/samples/voice-winrt.ps1</code></td><td>段階 2 の下調べで使ったサンプル。同名の cmd ランチャー付き。読み上げは Web Speech API にしたため、紙芝居では使っていない</td></tr>
 				<tr><td>動画化スクリプト</td><td class="nowrap"><code>tools/20_build/make-video.ps1</code></td><td>紙芝居をコマ撮りし、音声と合わせて mp4 にする。同名の cmd ランチャーを付ける</td></tr>
 				<tr><td>動画</td><td class="nowrap"><code>dist/kamishibai.mp4</code></td><td>動画化スクリプトの出力（Git 管理外）</td></tr>
 			</tbody>
@@ -222,15 +221,15 @@ footer {
 
 		<h2>段階 1: 紙芝居 HTML（音声なし）</h2>
 		<ul>
-			<li>台本の題材を決め、<code>script.json</code> に 3 場面分のナレーションを書く</li>
+			<li>題材は桃太郎。台本は作品の <code>story.js</code> に書く</li>
 			<li>場面ごとの絵を SVG で描き、場面の切り替えと字幕表示を作る</li>
-			<li>送りはクリック・矢印キーの手動と、一定時間ごとの自動の両方にする</li>
+			<li>送りはクリック・矢印キーの手動と、読み終わりでの自動の両方にする</li>
+			<li>詳しくは <a href="p261004-02-momotaro-web.html">計画: Web 紙芝居「桃太郎」の冒頭</a>と <a href="p261004-03-momotaro-full.html">計画: 桃太郎を最後まで</a></li>
 		</ul>
 
 		<h2>段階 2: 読み上げ音声</h2>
 		<ul>
-			<li><code>make-voice.ps1</code> で、台本の各場面を wav に書き出す（Windows 標準の音声合成 <code>System.Speech</code> を使う）</li>
-			<li>HTML 側で場面に入ったら音声を再生し、終わったら次の場面へ送る</li>
+			<li>ブラウザの Web Speech API で、場面に入ったら台本を読み上げ、読み終わったら次の場面へ送る（<code>src/engine/speech.js</code>）。wav は作らない</li>
 			<li>下調べで使ったコードは「サンプル」の章にまとめる</li>
 		</ul>
 
@@ -328,7 +327,7 @@ $synth.Dispose()</code></pre>
 		</ul>
 
 		<h3>wav に保存して再生する</h3>
-		<p><code>notes/samples/voice-to-wav.ps1</code>（<code>voice-to-wav.cmd</code> 付き）。音声の一覧を出し、日本語の音声を探して選び、wav に書き出してから再生する。<code>make-voice.ps1</code> はこれを元に、台本の場面ごとに書き出す形へ広げる。</p>
+		<p><code>notes/samples/voice-to-wav.ps1</code>（<code>voice-to-wav.cmd</code> 付き）。音声の一覧を出し、日本語の音声を探して選び、wav に書き出してから再生する。</p>
 		<pre><code class="language-powershell">$ErrorActionPreference = 'Stop'
 Add-Type -AssemblyName System.Speech
 
@@ -437,7 +436,7 @@ Write-Output '再生終了'</code></pre>
 			<li>作品のフォルダ名は <code>番号-英数字</code>（<code>01-momotaro</code>）。番号は作った順</li>
 			<li>作品名は漢字で付け、<code>&lt;title&gt;</code>・作品一覧・画面の表題に使う。1 作目は「桃太郎」。計画は <a href="p261004-02-momotaro-web.html">計画: Web 紙芝居「桃太郎」の冒頭</a>と、全編に広げた <a href="p261004-03-momotaro-full.html">計画: 桃太郎を最後まで</a></li>
 			<li>共通の JS は <code>&lt;script src&gt;</code> で読み込む。ES モジュール（<code>import</code>）はファイルを直接開いたとき読み込めないため使わない</li>
-			<li>「成果物」の章の <code>src/kamishibai/</code> は、この構成に置き換える。台本は <code>script.json</code> ではなく各作品の <code>story.js</code> に持つ</li>
+			<li>台本は各作品の <code>story.js</code> に持つ</li>
 		</ul>
 
 		<h2>公開</h2>

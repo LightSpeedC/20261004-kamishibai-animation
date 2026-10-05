@@ -22,11 +22,10 @@ Claude Code と手元のツールだけで、絵・動き・音声のついた�
 
 | 成果物 | 置き場 | 内容 |
 |---|---|---|
-| 紙芝居 HTML | `src/kamishibai/kamishibai.html` | 3 場面。絵は SVG。場面の切り替え・字幕・簡単な動き（移動・フェード・拡大） |
-| 台本 | `src/kamishibai/script.json` | 場面ごとのナレーション文。HTML と音声生成の両方がここを読む |
-| 音声合成のサンプル | `notes/samples/voice-list.ps1`<br>`notes/samples/voice-speak.ps1`<br>`notes/samples/voice-to-wav.ps1`<br>`notes/samples/voice-winrt.ps1` | 段階 2 の下調べで使ったサンプル。同名の cmd ランチャー付き |
-| 読み上げ音声 | `src/kamishibai/audio/` | 場面ごとの wav（`scene01.wav` 〜） |
-| 音声生成スクリプト | `tools/20_build/make-voice.ps1` | 台本から Windows 標準の音声合成で wav を書き出す。同名の cmd ランチャーを付ける |
+| 共通の仕組み | `src/engine/` | 舞台・字幕・送り（`kamishibai.css`・`player.js`）と、ブラウザの読み上げ（`speech.js`） |
+| 作品 | `src/works/01-momotaro/` | 桃太郎。15 場面。台本と絵（SVG）は `story.js` に持つ |
+| 作品一覧 | `src/index.html` | 作品へのリンク |
+| 音声合成のサンプル | `notes/samples/voice-list.ps1`<br>`notes/samples/voice-speak.ps1`<br>`notes/samples/voice-to-wav.ps1`<br>`notes/samples/voice-winrt.ps1` | 段階 2 の下調べで使ったサンプル。同名の cmd ランチャー付き。読み上げは Web Speech API にしたため、紙芝居では使っていない |
 | 動画化スクリプト | `tools/20_build/make-video.ps1` | 紙芝居をコマ撮りし、音声と合わせて mp4 にする。同名の cmd ランチャーを付ける |
 | 動画 | `dist/kamishibai.mp4` | 動画化スクリプトの出力（Git 管理外） |
 
@@ -36,14 +35,14 @@ Claude Code と手元のツールだけで、絵・動き・音声のついた�
 
 ### 段階 1: 紙芝居 HTML（音声なし）
 
-- 台本の題材を決め、`script.json` に 3 場面分のナレーションを書く
+- 題材は桃太郎。台本は作品の `story.js` に書く
 - 場面ごとの絵を SVG で描き、場面の切り替えと字幕表示を作る
-- 送りはクリック・矢印キーの手動と、一定時間ごとの自動の両方にする
+- 送りはクリック・矢印キーの手動と、読み終わりでの自動の両方にする
+- 詳しくは [計画: Web 紙芝居「桃太郎」の冒頭](p261004-02-momotaro-web.md)と [計画: 桃太郎を最後まで](p261004-03-momotaro-full.md)
 
 ### 段階 2: 読み上げ音声
 
-- `make-voice.ps1` で、台本の各場面を wav に書き出す（Windows 標準の音声合成 `System.Speech` を使う）
-- HTML 側で場面に入ったら音声を再生し、終わったら次の場面へ送る
+- ブラウザの Web Speech API で、場面に入ったら台本を読み上げ、読み終わったら次の場面へ送る（`src/engine/speech.js`）。wav は作らない
 - 下調べで使ったコードは「サンプル」の章にまとめる
 
 ### 段階 3: 動画化
@@ -131,7 +130,7 @@ $synth.Dispose()
 
 #### wav に保存して再生する
 
-`notes/samples/voice-to-wav.ps1`（`voice-to-wav.cmd` 付き）。音声の一覧を出し、日本語の音声を探して選び、wav に書き出してから再生する。`make-voice.ps1` はこれを元に、台本の場面ごとに書き出す形へ広げる。
+`notes/samples/voice-to-wav.ps1`（`voice-to-wav.cmd` 付き）。音声の一覧を出し、日本語の音声を探して選び、wav に書き出してから再生する。
 
 ```powershell
 $ErrorActionPreference = 'Stop'
@@ -247,7 +246,7 @@ src/
 - 作品のフォルダ名は `番号-英数字`（`01-momotaro`）。番号は作った順
 - 作品名は漢字で付け、`<title>`・作品一覧・画面の表題に使う。1 作目は「桃太郎」。計画は [計画: Web 紙芝居「桃太郎」の冒頭](p261004-02-momotaro-web.md)と、全編に広げた [計画: 桃太郎を最後まで](p261004-03-momotaro-full.md)
 - 共通の JS は `<script src>` で読み込む。ES モジュール（`import`）はファイルを直接開いたとき読み込めないため使わない
-- 「成果物」の章の `src/kamishibai/` は、この構成に置き換える。台本は `script.json` ではなく各作品の `story.js` に持つ
+- 台本は各作品の `story.js` に持つ
 
 ### 公開
 

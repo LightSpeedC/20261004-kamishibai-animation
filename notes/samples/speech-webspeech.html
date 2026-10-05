@@ -128,7 +128,7 @@ footer {
 <div class="titlebar">
 	<div class="inner">
 		<h1>サンプル: Web Speech API の読み上げ</h1>
-		<div class="date">📅 作成: 2026-10-04 / 更新: 2026-10-04</div>
+		<div class="date">📅 作成: 2026-10-04 / 更新: 2026-10-05</div>
 	</div>
 </div>
 <div class="wrap">
@@ -145,7 +145,7 @@ footer {
 		<select id="voice"></select>
 
 		<span></span>
-		<label class="check"><input type="checkbox" id="local-only" checked> PC の中で動く声だけを出す</label>
+		<label class="check"><input type="checkbox" id="local-only" checked> 内蔵の声だけを出す</label>
 
 		<span></span>
 		<label class="check"><input type="checkbox" id="ja-only" checked> 日本語の声だけを出す</label>
@@ -166,7 +166,7 @@ footer {
 	<p id="status"></p>
 
 	<h2>このブラウザで使える声</h2>
-	<p>「PC 内」は <code>localService</code> が <code>true</code> の声で、ネットに繋がずに動く。「ネット」はブラウザの提供元のサービスへ文章を送って読み上げる。</p>
+	<p>「内蔵」は <code>localService</code> が <code>true</code> の声で、PC・スマホの中で動き、ネットに繋がずに読める。「ネット」はブラウザの提供元のサービスへ文章を送って読み上げる。</p>
 	<div class="tablewrap">
 	<table>
 		<thead>
@@ -194,7 +194,7 @@ function loadVoices() {
 function renderTable() {
 	const rows = voices.map((v) => {
 		const where = v.localService
-			? '<span class="badge b-ok">PC 内</span>'
+			? '<span class="badge b-ok">内蔵</span>'
 			: '<span class="badge b-warn">ネット</span>';
 		return '<tr><td>' + escapeHtml(v.name) + '</td><td class="nowrap">' + escapeHtml(v.lang)
 			+ '</td><td class="nowrap">' + where + '</td><td class="nowrap">' + (v.default ? '既定' : '') + '</td></tr>';
@@ -208,7 +208,7 @@ function renderSelect() {
 	const jaOnly = $('ja-only').checked;
 	const list = voices.filter((v) => (!localOnly || v.localService) && (!jaOnly || v.lang.startsWith('ja')));
 	$('voice').innerHTML = list.map((v) => {
-		const label = v.name + '（' + v.lang + ' / ' + (v.localService ? 'PC 内' : 'ネット') + '）';
+		const label = v.name + '（' + v.lang + ' / ' + (v.localService ? '内蔵' : 'ネット') + '）';
 		return '<option value="' + escapeHtml(v.name) + '">' + escapeHtml(label) + '</option>';
 	}).join('');
 	if (list.some((v) => v.name === prev)) $('voice').value = prev;
