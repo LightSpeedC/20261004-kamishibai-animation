@@ -172,7 +172,7 @@ footer {
 <div class="titlebar">
 	<div class="inner">
 		<h1>計画: 紙芝居アニメの試作（外部サービス不使用）</h1>
-		<div class="date">📅 作成: 2026-10-04 / 更新: 2026-10-05</div>
+		<div class="date">📅 作成: 2026-10-04 / 更新: 2026-10-08</div>
 	</div>
 </div>
 <div class="wrap">
@@ -206,7 +206,6 @@ footer {
 			<tbody>
 				<tr><td>共通の仕組み</td><td class="nowrap"><code>src/engine/</code></td><td>舞台・字幕・送り（<code>kamishibai.css</code>・<code>player.js</code>）と、ブラウザの読み上げ（<code>speech.js</code>）</td></tr>
 				<tr><td>作品</td><td class="nowrap"><code>src/works/01-momotaro/</code></td><td>桃太郎。15 場面。台本と絵（SVG）は <code>story.js</code> に持つ</td></tr>
-				<tr><td>作品一覧</td><td class="nowrap"><code>src/index.html</code></td><td>作品へのリンク</td></tr>
 				<tr><td>音声合成のサンプル</td><td class="nowrap"><code>notes/samples/voice-list.ps1</code><br><code>notes/samples/voice-speak.ps1</code><br><code>notes/samples/voice-to-wav.ps1</code><br><code>notes/samples/voice-winrt.ps1</code></td><td>段階 2 の下調べで使ったサンプル。同名の cmd ランチャー付き。読み上げは Web Speech API にしたため、紙芝居では使っていない</td></tr>
 				<tr><td>動画化スクリプト</td><td class="nowrap"><code>tools/20_build/make-video.ps1</code></td><td>紙芝居をコマ撮りし、音声と合わせて mp4 にする。同名の cmd ランチャーを付ける</td></tr>
 				<tr><td>動画</td><td class="nowrap"><code>dist/kamishibai.mp4</code></td><td>動画化スクリプトの出力（Git 管理外）</td></tr>
@@ -422,8 +421,7 @@ Write-Output '再生終了'</code></pre>
 		<h1>作品の置き場と公開</h1>
 		<p>作品をいくつか作るため、共通の仕組みと作品を分けて置く。作品は台本と絵だけを持ち、送り・音・読み上げは共通の仕組みを使う。</p>
 		<pre><code class="language-text">src/
-  index.html              作品一覧
-  engine/                 共通の仕組み
+  engine/                共通の仕組み
     kamishibai.css        舞台の枠・字幕・切り替えの動き
     player.js             送り・自動再生・操作
     sound.js              効果音・BGM（Web Audio）
@@ -434,7 +432,7 @@ Write-Output '再生終了'</code></pre>
       story.js            台本・場面ごとの絵（SVG）・音の指定</code></pre>
 		<ul>
 			<li>作品のフォルダ名は <code>番号-英数字</code>（<code>01-momotaro</code>）。番号は作った順</li>
-			<li>作品名は漢字で付け、<code>&lt;title&gt;</code>・作品一覧・画面の表題に使う。1 作目は「桃太郎」。計画は <a href="p261004-02-momotaro-web.html">計画: Web 紙芝居「桃太郎」の冒頭</a>と、全編に広げた <a href="p261004-03-momotaro-full.html">計画: 桃太郎を最後まで</a></li>
+			<li>作品名は漢字で付け、<code>&lt;title&gt;</code>・README の作品の章・画面の表題に使う。1 作目は「桃太郎」。計画は <a href="p261004-02-momotaro-web.html">計画: Web 紙芝居「桃太郎」の冒頭</a>と、全編に広げた <a href="p261004-03-momotaro-full.html">計画: 桃太郎を最後まで</a></li>
 			<li>共通の JS は <code>&lt;script src&gt;</code> で読み込む。ES モジュール（<code>import</code>）はファイルを直接開いたとき読み込めないため使わない</li>
 			<li>台本は各作品の <code>story.js</code> に持つ</li>
 		</ul>
@@ -442,7 +440,7 @@ Write-Output '再生終了'</code></pre>
 		<h2>公開</h2>
 		<ul>
 			<li>GitHub Pages で、<code>develop</code> ブランチの root から公開する</li>
-			<li>root に <code>index.html</code>（<code>README.html</code> へのリダイレクト）と <code>.nojekyll</code> を置く。README から作品一覧 <code>src/index.html</code> へリンクする</li>
+			<li>root に <code>index.html</code>（<code>README.html</code> へのリダイレクト）と <code>.nojekyll</code> を置く。作品一覧のページは置かず、README の作品の章から各作品へ直接リンクする。作品の画面の ⌂ は README へ戻る</li>
 			<li>無料プランの Pages は public リポジトリが要る。公開前に git の初期化と、公開してよい内容かの点検を行う</li>
 		</ul>
 	</section>

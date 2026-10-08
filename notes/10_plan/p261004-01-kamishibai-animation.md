@@ -1,6 +1,6 @@
 # 計画: 紙芝居アニメの試作（外部サービス不使用）
 
-> 📅 作成: 2026-10-04 / 更新: 2026-10-05
+> 📅 作成: 2026-10-04 / 更新: 2026-10-08
 
 [⌂](../../README.md)
 
@@ -24,7 +24,6 @@ Claude Code と手元のツールだけで、絵・動き・音声のついた�
 |---|---|---|
 | 共通の仕組み | `src/engine/` | 舞台・字幕・送り（`kamishibai.css`・`player.js`）と、ブラウザの読み上げ（`speech.js`） |
 | 作品 | `src/works/01-momotaro/` | 桃太郎。15 場面。台本と絵（SVG）は `story.js` に持つ |
-| 作品一覧 | `src/index.html` | 作品へのリンク |
 | 音声合成のサンプル | `notes/samples/voice-list.ps1`<br>`notes/samples/voice-speak.ps1`<br>`notes/samples/voice-to-wav.ps1`<br>`notes/samples/voice-winrt.ps1` | 段階 2 の下調べで使ったサンプル。同名の cmd ランチャー付き。読み上げは Web Speech API にしたため、紙芝居では使っていない |
 | 動画化スクリプト | `tools/20_build/make-video.ps1` | 紙芝居をコマ撮りし、音声と合わせて mp4 にする。同名の cmd ランチャーを付ける |
 | 動画 | `dist/kamishibai.mp4` | 動画化スクリプトの出力（Git 管理外） |
@@ -231,8 +230,7 @@ Write-Output '再生終了'
 
 ```text
 src/
-  index.html              作品一覧
-  engine/                 共通の仕組み
+  engine/                共通の仕組み
     kamishibai.css        舞台の枠・字幕・切り替えの動き
     player.js             送り・自動再生・操作
     sound.js              効果音・BGM（Web Audio）
@@ -244,14 +242,14 @@ src/
 ```
 
 - 作品のフォルダ名は `番号-英数字`（`01-momotaro`）。番号は作った順
-- 作品名は漢字で付け、`<title>`・作品一覧・画面の表題に使う。1 作目は「桃太郎」。計画は [計画: Web 紙芝居「桃太郎」の冒頭](p261004-02-momotaro-web.md)と、全編に広げた [計画: 桃太郎を最後まで](p261004-03-momotaro-full.md)
+- 作品名は漢字で付け、`<title>`・README の作品の章・画面の表題に使う。1 作目は「桃太郎」。計画は [計画: Web 紙芝居「桃太郎」の冒頭](p261004-02-momotaro-web.md)と、全編に広げた [計画: 桃太郎を最後まで](p261004-03-momotaro-full.md)
 - 共通の JS は `<script src>` で読み込む。ES モジュール（`import`）はファイルを直接開いたとき読み込めないため使わない
 - 台本は各作品の `story.js` に持つ
 
 ### 公開
 
 - GitHub Pages で、`develop` ブランチの root から公開する
-- root に `index.html`（`README.html` へのリダイレクト）と `.nojekyll` を置く。README から作品一覧 `src/index.html` へリンクする
+- root に `index.html`（`README.html` へのリダイレクト）と `.nojekyll` を置く。作品一覧のページは置かず、README の作品の章から各作品へ直接リンクする。作品の画面の ⌂ は README へ戻る
 - 無料プランの Pages は public リポジトリが要る。公開前に git の初期化と、公開してよい内容かの点検を行う
 
 ## 7. 範囲外

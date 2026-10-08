@@ -70,8 +70,8 @@
 
 		const header = el('header', 'ks-header');
 		const back = el('a', 'ks-back', '⌂');
-		back.href = '../../index.html';
-		back.title = '作品一覧';
+		back.href = '../../../README.html';
+		back.title = 'README';
 		header.append(back, el('h1', 'ks-title', story.title));
 
 		const stage = el('div', 'ks-stage');

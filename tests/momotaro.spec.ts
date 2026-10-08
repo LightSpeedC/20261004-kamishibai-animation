@@ -8,6 +8,15 @@ import { pathToFileURL } from 'url';
 // （Page.captureScreenshot: Unable to capture screenshot。単独なら通る）
 test.describe.configure({ mode: 'default' });
 
+// テストの間、Chromium の音を消す。効果音と BGM のテストは本当に音を鳴らすため、
+// 消さないと PC のスピーカーから電子音が鳴り続ける。鳴らした記録（KamishibaiSound.history）は残る
+// （WebKit には Web Audio が無く、このオプションも無いため付けない）
+test.use({
+	launchOptions: [async ({ browserName }, use) => {
+		await use(browserName === 'chromium' ? { args: ['--mute-audio'] } : {});
+	}, { scope: 'worker' }] as any,
+});
+
 // プロジェクトのフォルダ。このファイル（tests/）の 1 つ上
 const ROOT = path.resolve(__dirname, '..');
 const WORK = pathToFileURL(path.join(ROOT, 'src/works/01-momotaro/index.html')).href;
@@ -395,8 +404,11 @@ test('「読み上げ」ボタンで読み上げを止め、字幕だけで時�
 	expect(await page.evaluate(() => (window as any).__spoken.length)).toBe(1);
 });
 
-test('作品一覧から桃太郎へ移れる', async ({ page }) => {
-	await page.goto(pathToFileURL(path.join(ROOT, 'src/index.html')).href);
+// 作品一覧のページは置かず、README の作品の章から直接入る。作品の ⌂ は README へ戻る
+test('README から桃太郎へ移れて、⌂ で README へ戻れる', async ({ page }) => {
+	await page.goto(pathToFileURL(path.join(ROOT, 'README.html')).href);
 	await page.getByText('桃太郎', { exact: true }).click();
 	await expect(page).toHaveTitle('桃太郎');
+	await page.locator('.ks-back').click();
+	await expect(page).toHaveTitle('紙芝居アニメーション');
 });

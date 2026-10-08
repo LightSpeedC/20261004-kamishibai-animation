@@ -2,6 +2,7 @@
 <html lang="ja">
 <head>
 <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
 <title>紙芝居アニメーション</title>
 <style>
 :root {
@@ -16,6 +17,10 @@
 	--accent2: #2f5fbf;
 	--soft: #f2f5fb;
 }
+.ch01 { --accent: hsl(280, 78%, 25%); --accent2: hsl(280, 58%, 55%); --soft: hsl(280, 28%, 95%); }
+.ch02 { --accent: hsl(186.7, 78%, 25%); --accent2: hsl(186.7, 58%, 55%); --soft: hsl(186.7, 28%, 95%); }
+.ch03 { --accent: hsl(93.3, 78%, 25%); --accent2: hsl(93.3, 58%, 55%); --soft: hsl(93.3, 28%, 95%); }
+.ch04 { --accent: hsl(0, 78%, 25%); --accent2: hsl(0, 58%, 55%); --soft: hsl(0, 28%, 95%); }
 * { box-sizing: border-box; }
 body {
 	margin: 0;
@@ -38,7 +43,6 @@ body {
 a { color: var(--link, #1a4fa0); background: transparent; }
 a.back {
 	display: inline-block;
-	margin: 20px 0 0;
 	padding: 2px 12px;
 	border-radius: 6px;
 	background: linear-gradient(100deg, var(--navy1, #12224d), var(--navy2, #2f5fbf));
@@ -46,6 +50,7 @@ a.back {
 	text-decoration: none;
 	font-weight: 700;
 }
+.wrap > a.back { margin-top: 18px; }
 code {
 	background: var(--code-bg, #f4f6fa);
 	border: 1px solid var(--line, #d9dfe8);
@@ -54,31 +59,56 @@ code {
 	border-radius: 3px;
 	font-size: 0.92em;
 }
-.minibar {
-	background: linear-gradient(135deg, var(--navy1, #12224d), var(--navy2, #2f5fbf));
-	color: #fff;
+section {
+	padding: 4px 26px 26px;
+	margin: 34px 0;
 	border-radius: 8px;
-	padding: 10px 16px;
-	margin: 30px 0 16px;
+	background: linear-gradient(180deg, var(--soft, #f2f5fb), #fff);
+	color: var(--ink, #1c2330);
 }
-.minibar h2 { margin: 0; font-size: 1.2em; color: #fff; }
-.it01 { --accent: hsl(280, 78%, 25%); --accent2: hsl(280, 58%, 55%); }
-.it02 { --accent: hsl(224, 78%, 25%); --accent2: hsl(224, 58%, 55%); }
-.it03 { --accent: hsl(168, 78%, 25%); --accent2: hsl(168, 58%, 55%); }
-.it04 { --accent: hsl(112, 78%, 25%); --accent2: hsl(112, 58%, 55%); }
-.it05 { --accent: hsl(56, 78%, 25%); --accent2: hsl(56, 58%, 55%); }
-.it06 { --accent: hsl(0, 78%, 25%); --accent2: hsl(0, 58%, 55%); }
-h1.item {
+section h1 {
+	padding: 14px 20px;
+	margin: 26px 0 20px;
+	border-radius: 8px;
 	background: linear-gradient(100deg, var(--accent, #12224d), var(--accent2, #2f5fbf));
 	color: #fff;
-	padding: 10px 16px;
-	border-radius: 8px;
-	margin: 16px 0 8px;
-	box-shadow: 0 1px 4px rgba(0,0,0,0.12);
-	font-size: 1.05em;
+	box-shadow: 0 2px 8px rgba(0,0,0,0.18);
+	font-size: 1.45em;
 }
-ul.doclist { margin: 0 0 20px; }
-ul.doclist li { margin: 6px 0; }
+section h2 {
+	padding: 6px 12px;
+	margin: 30px 0 12px;
+	border-left: 6px solid var(--accent, #12224d);
+	background: linear-gradient(90deg, var(--soft, #f2f5fb), #fff);
+	color: var(--accent, #12224d);
+	font-size: 1.15em;
+}
+section ul li { margin: 6px 0; }
+a.work {
+	display: block;
+	width: 80%;
+	max-width: 100%;
+	margin: 8px 0;
+	padding: 14px 20px;
+	border-radius: 6px;
+	background: linear-gradient(100deg, var(--accent, #12224d), var(--accent2, #2f5fbf));
+	color: #fff;
+	text-decoration: none;
+	box-shadow: 0 2px 8px rgba(0,0,0,0.18);
+}
+a.work .work-title {
+	display: block;
+	font-size: 1.3em;
+	font-weight: 700;
+	background: transparent;
+	color: #fff;
+}
+a.work .work-desc {
+	display: block;
+	font-size: 0.95em;
+	background: transparent;
+	color: #fff;
+}
 footer {
 	max-width: 1600px;
 	margin: 0 auto;
@@ -92,48 +122,55 @@ footer {
 <div class="titlebar">
 	<div class="inner">
 		<h1>紙芝居アニメーション</h1>
-		<div class="lead">外部サービスを使わず、絵・動き・音声のついた紙芝居を作る試作</div>
-		<div class="date">📅 作成: 2026-10-04 / 更新: 2026-10-05</div>
+		<div class="lead">絵・動き・音・読み上げのついた紙芝居を、ブラウザで動かす試作</div>
+		<div class="date">📅 作成: 2026-10-04 / 更新: 2026-10-08</div>
 	</div>
 </div>
 <div class="wrap">
 	<a class="back" href="../">⌂</a>
 
-	<p>Claude Code と手元のツールだけで、紙芝居アニメーションを作れるかを確かめるプロジェクト。絵は SVG、ナレーションは Windows 標準の音声合成で作り、最後に動画（mp4）にまとめる。クラウドの画像生成・音声合成は使わない。</p>
+	<p>Claude Code と手元のツールだけで、紙芝居アニメーションを作れるかを確かめるプロジェクト。絵と動きは SVG、読み上げはブラウザの音声合成、効果音と BGM は Web Audio で作る。クラウドの画像生成は使わない。</p>
 
-	<div class="minibar"><h2>作品</h2></div>
-	<h1 class="item it01">作品一覧</h1>
-	<ul class="doclist">
-		<li><a href="src/index.html">作品一覧</a>（桃太郎）</li>
-	</ul>
+	<section class="ch01" id="ch01">
+		<h1>作品</h1>
+		<p>絵をクリックするか、矢印キーで場面を送る。</p>
+		<a class="work" href="src/works/01-momotaro/index.html">
+			<span class="work-title">桃太郎</span>
+			<span class="work-desc">桃から生まれ、犬・猿・きじと鬼を退治して、村へ帰るまで。15 場面</span>
+		</a>
+	</section>
 
-	<div class="minibar"><h2>状態</h2></div>
-	<h1 class="item it02">進み具合</h1>
-	<ul class="doclist">
-		<li><a href="notes/30_status/status.html">状態: 紙芝居アニメーション</a></li>
-	</ul>
+	<section class="ch02" id="ch02">
+		<h1>状態</h1>
+		<ul>
+			<li><a href="notes/30_status/status.html">状態: 紙芝居アニメーション</a></li>
+		</ul>
+	</section>
 
-	<div class="minibar"><h2>計画</h2></div>
-	<h1 class="item it03">紙芝居アニメの試作</h1>
-	<ul class="doclist">
-		<li><a href="notes/10_plan/p261004-01-kamishibai-animation.html">計画: 紙芝居アニメの試作（外部サービス不使用）</a></li>
-		<li><a href="notes/10_plan/p261004-02-momotaro-web.html">計画: Web 紙芝居「桃太郎」の冒頭</a></li>
-		<li><a href="notes/10_plan/p261004-03-momotaro-full.html">計画: 桃太郎を最後まで</a></li>
-	</ul>
+	<section class="ch03" id="ch03">
+		<h1>計画</h1>
+		<ul>
+			<li><a href="notes/10_plan/p261004-01-kamishibai-animation.html">計画: 紙芝居アニメの試作（外部サービス不使用）</a></li>
+			<li><a href="notes/10_plan/p261004-02-momotaro-web.html">計画: Web 紙芝居「桃太郎」の冒頭</a></li>
+			<li><a href="notes/10_plan/p261004-03-momotaro-full.html">計画: 桃太郎を最後まで</a></li>
+		</ul>
+	</section>
 
-	<div class="minibar"><h2>サンプル</h2></div>
-	<h1 class="item it04">Windows の音声合成</h1>
-	<ul class="doclist">
-		<li><a href="notes/10_plan/p261004-01-kamishibai-animation.html#ch05">計画書「サンプル」の章</a>（<code>notes/samples/voice-*.ps1</code> の解説）</li>
-	</ul>
-	<h1 class="item it05">ブラウザの読み上げ</h1>
-	<ul class="doclist">
-		<li><a href="notes/samples/speech-webspeech.html">サンプル: Web Speech API の読み上げ</a></li>
-	</ul>
-	<h1 class="item it06">ブラウザの効果音と BGM</h1>
-	<ul class="doclist">
-		<li><a href="notes/samples/sound-webaudio.html">サンプル: Web Audio API の効果音と BGM</a></li>
-	</ul>
+	<section class="ch04" id="ch04">
+		<h1>サンプル</h1>
+		<h2>Windows の音声合成</h2>
+		<ul>
+			<li><a href="notes/10_plan/p261004-01-kamishibai-animation.html#ch05">計画書「サンプル」の章</a>（<code>notes/samples/voice-*.ps1</code> の解説）</li>
+		</ul>
+		<h2>ブラウザの読み上げ</h2>
+		<ul>
+			<li><a href="notes/samples/speech-webspeech.html">サンプル: Web Speech API の読み上げ</a></li>
+		</ul>
+		<h2>ブラウザの効果音と BGM</h2>
+		<ul>
+			<li><a href="notes/samples/sound-webaudio.html">サンプル: Web Audio API の効果音と BGM</a></li>
+		</ul>
+	</section>
 </div>
 <footer>
 	<a class="back" href="../">⌂</a>
