@@ -90,8 +90,9 @@
 		const next = el('button', 'ks-nav ks-next', '›');
 		next.setAttribute('aria-label', '次の場面');
 		const page = el('span', 'ks-page');
+		const pauseButton = el('button', 'ks-nav ks-pause');
 		const controls = el('div', 'ks-controls');
-		controls.append(first, prev, page, next);
+		controls.append(first, prev, page, next, pauseButton);
 		// 「音」（効果音と BGM）と「読み上げ」を別々に消せるボタン。押すたびにオン・オフが替わる
 		const soundButton = el('button', 'ks-toggle ks-sound');
 		const speechButton = el('button', 'ks-toggle ks-speech');
@@ -106,6 +107,29 @@
 
 		let token = 0;	// 読み上げの回。場面が変わったら増やし、前の回の合図を捨てる
 		let timer = null;
+		// 次の場面へ送るまでのタイマーは、一時停止で残りの時間を控えて止め、再開で続きから数える
+		let timerFn = null;
+		let timerDue = 0;
+		let timerLeft = 0;
+		let speaking = null;	// 読んでいる文の番号。読んでいなければ null
+
+		// 一時停止（i261008-01）。読み上げ・送り・絵の動き・効果音・BGM をすべて止める
+		let paused = false;
+		// 再開したときに読み直す文の番号。止めた文は途中から続けず、頭から読み直す（33-A）
+		let resumeFrom = null;
+		// 止めている間に場面を替えたか。替えても止めたままにし、再開したらその場面を頭から始める（34-B）
+		let sceneWaiting = false;
+
+		function later(fn, ms) {
+			clearTimeout(timer);
+			timerFn = fn;
+			timerDue = Date.now() + ms;
+			timer = setTimeout(() => {
+				timer = null;
+				timerFn = null;
+				fn();
+			}, ms);
+		}
 
 		function voiceAvailable() {
 			return speech !== null && speech.ready();
@@ -153,12 +177,14 @@
 			token++;
 			clearTimeout(timer);
 			timer = null;
+			timerFn = null;
+			speaking = null;
 			if (speech) speech.cancel();
 			if (sound) sound.duck(false);
 		}
 
-		// 今の場面を読み、読み終えたら次の場面へ送る
-		function narrate() {
+		// 今の場面を from 番目の文から読み、読み終えたら次の場面へ送る
+		function narrate(from = 0) {
 			stopNarration();
 			if (current === 0) return;
 			const my = token;
@@ -169,24 +195,25 @@
 
 			const finish = () => {
 				if (my !== token) return;
+				speaking = null;
 				if (sound) sound.duck(false);
 				caption.textContent = scene.text;
 				if (current >= pages.length - 1) return;
 				const wait = Math.max(AFTER_MS, enteredAt + MIN_SCENE_MS - Date.now());
-				timer = setTimeout(() => {
+				later(() => {
 					if (my === token) go(current + 1);
 				}, wait);
 			};
 
 			if (!speechReady()) {
 				// 声が無い: 字幕だけを出し、読む時間をおいて送る
-				timer = setTimeout(finish, scene.text.length * NO_VOICE_MS_PER_CHAR);
+				later(finish, scene.text.length * NO_VOICE_MS_PER_CHAR);
 				return;
 			}
 
 			// 読み上げ中は BGM を小さくする
 			if (sound) sound.duck(true);
-			let i = 0;
+			let i = from;
 			const step = () => {
 				if (my !== token) return;
 				if (i >= read.length) {
@@ -194,6 +221,7 @@
 					return;
 				}
 				const k = i;
+				speaking = k;
 				renderCaption(shown, k, 0);
 				speech.speak(read[k], {
 					onboundary: (pos) => {
@@ -222,6 +250,74 @@
 			prev.disabled = current === 0;
 			next.disabled = current === pages.length - 1;
 			startButton.hidden = current !== 0;
+			// 表紙では何も動いていないため、止められない
+			pauseButton.disabled = current === 0;
+		}
+
+		function renderPause() {
+			const label = paused ? '再開' : '一時停止';
+			pauseButton.textContent = paused ? '▶' : '⏸';
+			pauseButton.setAttribute('aria-label', label);
+			pauseButton.title = label;
+		}
+
+		// 絵の動き（SVG の animate）を止める・動かす
+		function pauseCards(on) {
+			stage.querySelectorAll('.ks-card > svg').forEach((svg) => {
+				if (on) svg.pauseAnimations();
+				else svg.unpauseAnimations();
+			});
+		}
+
+		function setPaused(on) {
+			if (on === paused || (on && current === 0)) return;
+			paused = on;
+			if (on) {
+				if (timer !== null) {
+					clearTimeout(timer);
+					timer = null;
+					timerLeft = Math.max(0, timerDue - Date.now());
+				}
+				if (speaking !== null) {
+					// 読んでいる文を打ち切る。読み直すのは再開したとき
+					resumeFrom = speaking;
+					token++;
+					speaking = null;
+					speech.cancel();
+				}
+				if (sound) sound.pause();
+				pauseCards(true);
+			} else {
+				if (sound) {
+					sound.resume();
+					sound.unlock();
+				}
+				pauseCards(false);
+				if (sceneWaiting) {
+					sceneWaiting = false;
+					resumeFrom = null;
+					narrate();
+					soundScene();
+				} else if (resumeFrom !== null) {
+					const k = resumeFrom;
+					resumeFrom = null;
+					narrate(k);
+				} else if (timerFn !== null) {
+					later(timerFn, timerLeft);
+				}
+			}
+			renderPause();
+		}
+
+		// 声や読み上げのオン・オフを替えたとき、今の場面を頭から読み直す。止めている間は、再開したときに読む
+		function rereadScene() {
+			if (current === 0) return;
+			if (!paused) {
+				narrate();
+				return;
+			}
+			stopNarration();
+			if (!sceneWaiting) resumeFrom = 0;
 		}
 
 		// 声の名前を選択欄で出す。クリックで日本語の声の一覧が開き、別の声を選べる
@@ -245,7 +341,7 @@
 			select.value = speech.voiceName();
 			select.addEventListener('change', () => {
 				// 選んだ声で、今の場面を頭から読み直す
-				if (speech.setVoice(select.value) && current !== 0) narrate();
+				if (speech.setVoice(select.value)) rereadScene();
 			});
 			label.append(select);
 			voiceInfo.append(label);
@@ -259,10 +355,26 @@
 			const oldCard = stage.querySelector('.ks-card');
 			const newCard = card(to);
 			const forward = to > current;
+			// 表紙へ戻るときは一時停止を解く。表紙では何も動かないため
+			if (to === 0 && paused) {
+				sceneWaiting = false;
+				resumeFrom = null;
+				paused = false;
+				if (sound) sound.resume();
+				renderPause();
+			}
 			current = to;
 			render();
-			narrate();
-			soundScene();
+			if (paused) {
+				// 止めたまま絵と字幕だけを替える。前の場面の読み上げと効果音は捨て、再開したらこの場面を頭から始める
+				stopNarration();
+				resumeFrom = null;
+				sceneWaiting = true;
+				if (sound) sound.clearScheduled();
+			} else {
+				narrate();
+				soundScene();
+			}
 			if (forward) {
 				// 次へ: 新しい絵を下に置き、今の絵を右へ引き抜く
 				stage.insertBefore(newCard, oldCard);
@@ -281,6 +393,8 @@
 					busy = false;
 				});
 			}
+			// 止めている間に出した絵は、動きの始まりで止めておく
+			if (paused) pauseCards(true);
 		}
 
 		stage.addEventListener('click', () => go(current + 1));
@@ -292,6 +406,7 @@
 		first.addEventListener('click', () => go(0));
 		prev.addEventListener('click', () => go(current - 1));
 		next.addEventListener('click', () => go(current + 1));
+		pauseButton.addEventListener('click', () => setPaused(!paused));
 		// 音を消すと、鳴らす予定の効果音と BGM も止める。点け直したら、今の場面の BGM から鳴らす
 		soundButton.addEventListener('click', () => {
 			sound.unlock();
@@ -303,7 +418,7 @@
 		speechButton.addEventListener('click', () => {
 			speechOn = !speechOn;
 			renderToggles();
-			if (current !== 0) narrate();
+			rereadScene();
 		});
 		document.addEventListener('keydown', (e) => {
 			if (e.altKey || e.ctrlKey || e.metaKey) return;
@@ -311,11 +426,19 @@
 			if (e.target instanceof Element && e.target.closest('select, input, textarea')) return;
 			if (e.key === 'ArrowRight' || e.key === 'PageDown') go(current + 1);
 			else if (e.key === 'ArrowLeft' || e.key === 'PageUp') go(current - 1);
+			else if (e.key === ' ') {
+				// 見えているボタンにフォーカスがあるときは、スペースキーでそのボタンを押す（ブラウザの既定）
+				const button = e.target instanceof Element ? e.target.closest('button') : null;
+				if (button && !button.hidden && !button.disabled) return;
+				e.preventDefault();
+				if (!e.repeat) setPaused(!paused);
+			}
 		});
 
 		stage.append(card(0), startButton);
 		render();
 		renderToggles();
+		renderPause();
 		// 声の一覧が後から届いたら、表示を直す
 		renderVoice();
 		if (speech !== null) speech.onVoicesChanged(renderVoice);

@@ -412,3 +412,102 @@ test('README から桃太郎へ移れて、⌂ で README へ戻れる', async (
 	await page.locator('.ks-back').click();
 	await expect(page).toHaveTitle('紙芝居アニメーション');
 });
+
+// ---- 一時停止（i261008-01） ----
+// 止めている間は、読み上げ・自動の送り・絵の動き・効果音・BGM をすべて止める
+
+const spokenList = (page: Page) => page.evaluate(() => (window as any).__spoken.slice() as string[]);
+const cardPaused = (page: Page) => page.evaluate(() => {
+	const svg = document.querySelector('.ks-card svg') as SVGSVGElement | null;
+	return svg ? svg.animationsPaused() : null;
+});
+
+test('表紙では一時停止のボタンを押せない', async ({ page }) => {
+	await mockSpeech(page, { voices: ONE_VOICE, endMs: null });
+	await page.goto(WORK);
+	await expect(page.locator('.ks-pause')).toBeDisabled();
+	await page.locator('.ks-start').click();
+	await expect(page.locator('.ks-pause')).toBeEnabled();
+});
+
+// 再開したときは、止めた文を頭から読み直す（33-A）。文の途中から続ける作り（33-B）は、ブラウザによって続きが読まれないことがあるため採らない
+test('一時停止すると読み上げと絵の動きが止まり、再開すると止めた文を頭から読み直す', async ({ page }) => {
+	await mockSpeech(page, { voices: ONE_VOICE, endMs: null, holdIf: 'むかしむかし' });
+	await page.goto(WORK);
+	await page.locator('.ks-start').click();
+	await expect.poll(() => spokenList(page)).toEqual([uttered(SPOKEN[0])]);
+	await expect(page.locator('.ks-card')).toHaveCount(1);
+	const canceled = await page.evaluate(() => (window as any).__canceled);
+
+	await page.locator('.ks-pause').click();
+	await expect(page.locator('.ks-pause')).toHaveAttribute('aria-label', '再開');
+	await expect(page.locator('.ks-pause')).toHaveText('▶');
+	expect(await page.evaluate(() => (window as any).__canceled)).toBeGreaterThan(canceled);
+	expect(await cardPaused(page)).toBe(true);
+
+	await page.locator('.ks-pause').click();
+	await expect(page.locator('.ks-pause')).toHaveAttribute('aria-label', '一時停止');
+	await expect(page.locator('.ks-pause')).toHaveText('⏸');
+	await expect.poll(() => spokenList(page)).toEqual([uttered(SPOKEN[0]), uttered(SPOKEN[0])]);
+	expect(await cardPaused(page)).toBe(false);
+});
+
+test('読み終えて次の場面を待つ間に一時停止すると送られず、再開すると残りの時間をおいて送る', async ({ page }) => {
+	await mockSpeech(page, { voices: ONE_VOICE, endMs: 100 });
+	await page.goto(WORK);
+	await page.locator('.ks-start').click();
+	await expect.poll(() => spokenList(page)).toHaveLength(1);
+	await expect(page.locator('.ks-card')).toHaveCount(1);
+	await page.locator('.ks-pause').click();
+
+	// 1 場面は最短 5 秒見せてから送る。止めている間はその時間が進まない
+	await page.waitForTimeout(6000);
+	await expect(page.locator('.ks-page')).toHaveText(`1 / ${N}`);
+
+	await page.locator('.ks-pause').click();
+	await expect(page.locator('.ks-page')).toHaveText(`2 / ${N}`, { timeout: 8_000 });
+});
+
+// 止めている間に場面を替えても、止めたままにする（34-B）。絵と字幕だけを替え、再開したらその場面を頭から読む
+test('一時停止のまま矢印キーで場面を替えると、絵と字幕だけが替わり、再開するとその場面を読む', async ({ page }) => {
+	await mockSpeech(page, { voices: ONE_VOICE, endMs: null });
+	await page.goto(WORK);
+	await page.locator('.ks-start').click();
+	await expect.poll(() => spokenList(page)).toHaveLength(1);
+	await expect(page.locator('.ks-card')).toHaveCount(1);
+
+	// スペースキーでも止められる
+	await page.keyboard.press(' ');
+	await expect(page.locator('.ks-pause')).toHaveAttribute('aria-label', '再開');
+	await page.keyboard.press('ArrowRight');
+	await expect(page.locator('.ks-page')).toHaveText(`2 / ${N}`);
+	await expect(page.locator('.ks-caption')).toHaveText(TEXTS[1]);
+	await expect(page.locator('.ks-card')).toHaveCount(1);
+	await expect(page.locator('.ks-pause')).toHaveAttribute('aria-label', '再開');
+	expect(await cardPaused(page)).toBe(true);
+	expect(await spokenList(page)).toHaveLength(1);
+
+	await page.keyboard.press(' ');
+	await expect(page.locator('.ks-pause')).toHaveAttribute('aria-label', '一時停止');
+	await expect.poll(() => spokenList(page)).toEqual([uttered(SPOKEN[0]), uttered(sentences(SPOKEN[1])[0])]);
+});
+
+test('一時停止すると効果音と BGM が止まり、再開すると続きが鳴る', async ({ page }) => {
+	await mockSpeech(page, { voices: ONE_VOICE, endMs: null });
+	await page.goto(WORK);
+	await page.locator('.ks-start').click();
+	await expect.poll(async () => (await soundState(page)).bgm).toBe('normal');
+	// 4 場面は、入ってから 2 秒で「ぱかっ」が鳴る。その前に止める
+	await forward(page, 3);
+	await expect(page.locator('.ks-page')).toHaveText(`4 / ${N}`);
+	await page.locator('.ks-pause').click();
+	await expect.poll(async () => (await soundState(page)).paused).toBe(true);
+
+	await page.waitForTimeout(3000);
+	expect(await soundHistory(page)).not.toContain('pakka');
+
+	await page.locator('.ks-pause').click();
+	await expect.poll(async () => (await soundState(page)).paused).toBe(false);
+	await expect.poll(() => soundHistory(page), { timeout: 5_000 }).toContain('pakka');
+	expect((await soundState(page)).bgm).toBe('normal');
+});

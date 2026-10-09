@@ -21,6 +21,7 @@
 	let ducked = false;
 	let bgm = null;	// 流している BGM。{ tempo: 'normal' | 'fast', nodes, timer }
 	let scheduled = [];	// 場面の効果音を鳴らすタイマー
+	let paused = false;	// 一時停止中。音の時計とタイマーを止めている
 	// 鳴らした音の名前（テストで確かめるため）。古いものから消す
 	const history = [];
 
@@ -29,7 +30,52 @@
 		if (history.length > 200) history.shift();
 	}
 
-	// 最初の操作の中で呼ぶ。音の出口を作り、止まっていれば動かす
+	// ---- 一時停止で止められるタイマー ----
+	// 音そのものは音の時計（ctx.currentTime）で鳴らすため、ctx を止めれば止まる。
+	// 次に鳴らす音を組むタイマーは時計の外にあるため、残りの時間を控えて止め、再開で続きから数える
+	const timers = new Set();
+
+	function run(t) {
+		t.due = Date.now() + t.left;
+		t.id = setTimeout(() => {
+			timers.delete(t);
+			t.fn();
+		}, t.left);
+	}
+
+	function later(fn, ms) {
+		const t = { fn, left: ms, due: 0, id: null };
+		timers.add(t);
+		if (!paused) run(t);
+		return t;
+	}
+
+	function cancelLater(t) {
+		if (!t) return;
+		clearTimeout(t.id);
+		timers.delete(t);
+	}
+
+	function pause() {
+		if (paused) return;
+		paused = true;
+		for (const t of timers) {
+			if (t.id === null) continue;
+			clearTimeout(t.id);
+			t.id = null;
+			t.left = Math.max(0, t.due - Date.now());
+		}
+		if (ctx) ctx.suspend();
+	}
+
+	function resume() {
+		if (!paused) return;
+		paused = false;
+		if (ctx) ctx.resume();
+		for (const t of timers) run(t);
+	}
+
+	// 最初の操作の中で呼ぶ。音の出口を作り、止まっていれば動かす（一時停止中は動かさない）
 	function unlock() {
 		if (!ctx) {
 			ctx = new Ctx();
@@ -40,7 +86,7 @@
 			bgmGain.gain.value = BGM_VOL;
 			bgmGain.connect(master);
 		}
-		if (ctx.state === 'suspended') ctx.resume();
+		if (ctx.state === 'suspended' && !paused) ctx.resume();
 	}
 
 	// ラ（A4 = 440 Hz）から半音 n 個離れた音の周波数
@@ -175,11 +221,11 @@
 	// 場面に入ったときに呼ぶ。list: [{ name, at: 秒 }]
 	function schedule(list) {
 		clearScheduled();
-		for (const s of list) scheduled.push(setTimeout(() => play(s.name), (s.at || 0) * 1000));
+		for (const s of list) scheduled.push(later(() => play(s.name), (s.at || 0) * 1000));
 	}
 
 	function clearScheduled() {
-		scheduled.forEach(clearTimeout);
+		scheduled.forEach(cancelLater);
 		scheduled = [];
 	}
 
@@ -213,7 +259,7 @@
 				b += beats * beat;
 			}
 			// 曲の終わりの少し前に、次の 1 回分を組む
-			bgm.timer = setTimeout(() => {
+			bgm.timer = later(() => {
 				if (!bgm) return;
 				bgm.nodes = [];
 				loop(0.05);
@@ -224,7 +270,7 @@
 
 	function stopBgm() {
 		if (!bgm) return;
-		clearTimeout(bgm.timer);
+		cancelLater(bgm.timer);
 		for (const osc of bgm.nodes) {
 			try { osc.stop(); } catch (e) { /* 鳴り終わった音は止められない */ }
 		}
@@ -240,7 +286,7 @@
 		bgmGain.gain.setValueAtTime(bgmGain.gain.value, now);
 		bgmGain.gain.linearRampToValueAtTime(0.0001, now + sec);
 		const fading = bgm;
-		setTimeout(() => {
+		later(() => {
 			if (bgm === fading) stopBgm();
 		}, sec * 1000);
 		note('bgm-fade');
@@ -271,8 +317,8 @@
 
 	// 今の状態（テストで確かめるため）
 	function state() {
-		return { enabled, bgm: bgm ? bgm.tempo : null, ducked };
+		return { enabled, bgm: bgm ? bgm.tempo : null, ducked, paused };
 	}
 
-	window.KamishibaiSound = { unlock, play, schedule, clearScheduled, startBgm, stopBgm, fadeBgm, duck, setEnabled, isEnabled, state, history };
+	window.KamishibaiSound = { unlock, play, schedule, clearScheduled, startBgm, stopBgm, fadeBgm, duck, setEnabled, isEnabled, pause, resume, state, history };
 })();

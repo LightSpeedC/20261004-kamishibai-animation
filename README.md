@@ -18,13 +18,17 @@ Claude Code と手元のツールだけで、紙芝居アニメーションを�
 
 - [状態: 紙芝居アニメーション](notes/30_status/status.md)
 
-## 3. 計画
+## 3. 課題
+
+- [課題: 紙芝居アニメーション](notes/40_issues/issues.md)
+
+## 4. 計画
 
 - [計画: 紙芝居アニメの試作（外部サービス不使用）](notes/10_plan/p261004-01-kamishibai-animation.md)
 - [計画: Web 紙芝居「桃太郎」の冒頭](notes/10_plan/p261004-02-momotaro-web.md)
 - [計画: 桃太郎を最後まで](notes/10_plan/p261004-03-momotaro-full.md)
 
-## 4. サンプル
+## 5. サンプル
 
 ### Windows の音声合成
 
