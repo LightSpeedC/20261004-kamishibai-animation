@@ -96,20 +96,20 @@ footer {
 <div class="titlebar">
 	<div class="inner">
 		<h1>課題: 紙芝居アニメーション</h1>
-		<div class="date">📅 作成: 2026-10-08 / 更新: 2026-10-08</div>
+		<div class="date">📅 作成: 2026-10-08 / 更新: 2026-10-12</div>
 	</div>
 </div>
 <div class="wrap">
 	<a class="back" href="../../README.html">⌂</a>
 
-	<h2>再生の画面（1 件）</h2>
+	<h2>再生の画面（3 件）</h2>
 
-	<details class="md-flat" id="i261008-01" open>
-		<summary><span class="no">i261008-01</span><span class="badge b-warn">着手</span> 一時停止のボタンが無い</summary>
+	<details class="md-flat" id="i261008-01">
+		<summary><span class="no">i261008-01</span><span class="badge b-ok">済</span> 一時停止のボタンが無い</summary>
 		<p>再生を始めると、読み上げ・自動の送り・絵の動き・効果音・BGM を途中で止める手段が無い。止めるには、表紙に戻るか、音と読み上げを消すしかない。</p>
 		<p>決めたこと:</p>
 		<ul>
-			<li>再開したときは、止めた文を頭から読み直す（33-A）。文の途中から続ける作り（33-B。ブラウザの読み上げの pause / resume）は、試したうえで替える余地を残す</li>
+			<li>再開したときは、止めた文を頭から読み直す（33-A）。文の途中から続ける作り（33-B。ブラウザの読み上げの pause / resume）は採らない（利用者が試して決めた。2026-10-12）</li>
 			<li>止めている間に ‹ › や矢印キーで場面を替えても、止めたままにする（34-B）。絵と字幕だけを替え、再開したらその場面を頭から始める</li>
 			<li>表紙では押せない。表紙へ戻ると一時停止を解く</li>
 		</ul>
@@ -117,7 +117,34 @@ footer {
 			<li><span class="badge b-ok">済</span> 一時停止と再開のボタン（⏸ / ▶）を ‹ › の並びに付ける。スペースキーでも切り替える（<code>src/engine/player.js</code>）</li>
 			<li><span class="badge b-ok">済</span> 止めている間は、読み上げ・自動の送り・絵の動き・効果音・BGM をすべて止める。効果音と BGM は音の時計と、次の音を組むタイマーを止める（<code>src/engine/sound.js</code>）</li>
 			<li><span class="badge b-ok">済</span> テストを足す（<code>tests/momotaro.spec.ts</code> の「一時停止」）</li>
-			<li><span class="badge b-none">未</span> 利用者が試し、続きから読む作り（33-B）に替えるかを決める</li>
+			<li><span class="badge b-ok">済</span> 利用者が試し、続きから読む作り（33-B）に替えるかを決める（33-A のままにする。2026-10-12）</li>
+		</ul>
+	</details>
+
+	<details class="md-flat" id="i261011-01">
+		<summary><span class="no">i261011-01</span><span class="badge b-ok">済</span> 声の選択に、費用と作り方を先頭に出し、VOICEVOX・AivisSpeech の声を足す</summary>
+		<p>いまの声のプルダウンは「声の名前（内蔵）」「声の名前（ネット）」と、種類を後ろに付けている（<code>src/engine/player.js</code>）。費用と作り方が名前より先に読めない。</p>
+		<p>決めたこと（表示の形）:</p>
+		<ul>
+			<li>ブラウザの声: <code>無料: 内蔵: 動的生成: 声の名前</code> ／ <code>無料: ネット: 動的生成: 声の名前</code></li>
+			<li>VOICEVOX の声: <code>無料: wav 6MB: VOICEVOX: ずんだもん</code> ／ <code>無料: wav 5MB: VOICEVOX: 四国めたん</code>（大きさは、その声の音声の合計）</li>
+			<li>AivisSpeech の声: <code>無料: wav 11MB: AivisSpeech: まお</code> ／ <code>無料: wav 11MB: AivisSpeech: コハク</code>（VOICEVOX の規約の書き方に揃える）</li>
+			<li>権利表記は、プルダウンの右に別のラベルを出さず、プルダウンの文言で示す（2026-10-11 に利用者が決めた。ACML 1.0 ではクレジットは任意）</li>
+		</ul>
+		<ul>
+			<li><span class="badge b-ok">済</span> ブラウザの声の表示を、種類を先頭に置く形に替える</li>
+			<li><span class="badge b-ok">済</span> VOICEVOX・AivisSpeech の 4 声で、全場面の文を wav に作って置き、選んだら再生する（全 108 本を音声認識で、AivisSpeech の 19 本を利用者が聞いて確かめ、2 本を作り直した。2026-10-11。計画 <a href="../10_plan/p261010-01-voice-synthesis.html">p261010-01</a>）</li>
+			<li><span class="badge b-ok">済</span> 権利表記を、プルダウンの文言で示す（別ラベルは削除。VOICEVOX・AivisSpeech の規約は確認済み）</li>
+			<li><span class="badge b-ok">済</span> テストを足す（8 本。全件が通った）</li>
+		</ul>
+	</details>
+
+	<details class="md-flat" id="i261012-01" open>
+		<summary><span class="no">i261012-01</span><span class="badge b-none">未</span> 古い声の選択を消すファイルを、いつか外す</summary>
+		<p>声の選択は、はじめ <code>localStorage</code> の 2 つのキー（<code>kamishibai.voice</code>・<code>kamishibai.voice.recorded</code>）に残していた。<code>sessionStorage</code> に移すにあたり、開いた人の手元から古い値を消す <code>src/engine/clear-old-storage.js</code> を置く（計画 <a href="../10_plan/p261012-01-voice-storage.html">p261012-01</a>）。</p>
+		<p>開かない人の分は消せないため、いつまで置けばよいかは決まらない。古い値が残っていても、新しい作りは読まないので害は無い。</p>
+		<ul>
+			<li><span class="badge b-none">未</span> 外す時期を決め、ファイルと作品の <code>index.html</code> の読み込み 1 行を消す</li>
 		</ul>
 	</details>
 </div>
