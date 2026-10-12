@@ -183,7 +183,7 @@
 				if (speech !== null) speech.prefer(saved.slice(2));
 			} else if (saved.startsWith('r:') && recorded !== null) {
 				const v = recorded.voices().find((x) => recordedValue(x) === saved);
-				if (v) recorded.select(v.key);
+				if (v) recorded.select(v.key, v.format);
 			}
 		}
 
@@ -450,7 +450,7 @@
 				select.append(o);
 			}
 			// どれも選ばれていない（ブラウザの声が無く、事前生成も選んでいない）ときは、空にしておく
-			if (usingRecorded()) select.value = recordedValue(recordedVoices.find((v) => v.key === recorded.current()));
+			if (usingRecorded()) select.value = recordedValue(recorded.current());
 			else if (speech !== null && speech.ready()) select.value = 'b:' + speech.voiceName();
 			else select.selectedIndex = -1;
 			// 権利表記（VOICEVOX の「VOICEVOX - 名前」など）は、選択欄の文言そのもので示す
@@ -458,7 +458,7 @@
 				let changed;
 				if (select.value.startsWith('r:')) {
 					const v = recordedVoices.find((x) => recordedValue(x) === select.value);
-					changed = recorded.select(v.key);
+					changed = recorded.select(v.key, v.format);
 				} else {
 					if (recorded !== null) recorded.select(null);
 					changed = speech.setVoice(select.value.slice(2));

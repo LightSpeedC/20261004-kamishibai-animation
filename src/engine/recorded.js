@@ -12,26 +12,32 @@
 	const POLL_MS = 50;	// 再生の位置を見て、句の色を進める間隔
 	const MARGIN_MS = 15000;	// 終わりの合図が来ないとき、音声の長さにこれだけ足して打ち切る（読み込みの遅れの分）
 
-	// 選んでいる事前生成の声の key。null はブラウザの声。既定は一覧の先頭の声（ずんだもん）
-	// 選んだ声を残すのは player.js（p261012-01）
-	let key = list[0].key;
+	// 選んでいる事前生成の声。null はブラウザの声。既定は一覧の先頭の声（ずんだもんの mp3）
+	// 同じ声に mp3 と wav があるため、key と format の組で選ぶ（p261012-02）。選んだ声を残すのは player.js（p261012-01）
+	let chosen = list[0];
 
 	const audio = new Audio();
 	let stop = null;	// 今の再生を止めて後始末する関数
 
-	// 選べる事前生成の声。label は選択欄の文言（権利表記もこれで示す）。format は wav などの形式
+	// 選べる事前生成の声。label は選択欄の文言（権利表記もこれで示す）。format は mp3・wav の形式
 	function voices() {
 		return list.map((v) => ({ key: v.key, format: v.format, label: v.label }));
 	}
 
+	// 選んでいる声の { key, format }。ブラウザの声なら null
 	function current() {
-		return key;
+		return chosen === null ? null : { key: chosen.key, format: chosen.format };
 	}
 
-	// 声を選ぶ。null はブラウザの声に戻す。一覧に無い key なら変えない
-	function select(next) {
-		if (next !== null && !list.some((v) => v.key === next)) return false;
-		key = next;
+	// 声を選ぶ。key が null ならブラウザの声に戻す。一覧に無い組なら変えない
+	function select(key, format) {
+		if (key === null) {
+			chosen = null;
+			return true;
+		}
+		const v = list.find((x) => x.key === key && x.format === format);
+		if (!v) return false;
+		chosen = v;
 		return true;
 	}
 
@@ -40,8 +46,7 @@
 	// cancel() で止めたときは、どれも呼ばない
 	function speak(scene, sentence, { onphrase, onend, onerror }) {
 		cancel();
-		const voice = list.find((v) => v.key === key);
-		const item = voice && voice.scenes[scene] && voice.scenes[scene][sentence];
+		const item = chosen && chosen.scenes[scene] && chosen.scenes[scene][sentence];
 		if (!item) {
 			setTimeout(onerror, 0);
 			return;

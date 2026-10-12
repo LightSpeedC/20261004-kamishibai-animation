@@ -70,10 +70,15 @@ const THREE_VOICES: Voice[] = [
 
 // 事前生成の声の表示名。tools/20_build/make-voice.ts の表と揃える（p261010-01）
 // 「wav 6MB」の大きさは音声を作り直すと変わるため、数字は問わない
+// 声ごとに mp3（wav から変換）、wav の順（p261012-02 の 76-A）
 const RECORDED_LABELS = [
+	/^無料: wav➡mp3 \d+MB: VOICEVOX: ずんだもん$/,
 	/^無料: wav \d+MB: VOICEVOX: ずんだもん$/,
+	/^無料: wav➡mp3 \d+MB: VOICEVOX: 四国めたん$/,
 	/^無料: wav \d+MB: VOICEVOX: 四国めたん$/,
+	/^無料: wav➡mp3 \d+MB: AivisSpeech: まお$/,
 	/^無料: wav \d+MB: AivisSpeech: まお$/,
+	/^無料: wav➡mp3 \d+MB: AivisSpeech: コハク$/,
 	/^無料: wav \d+MB: AivisSpeech: コハク$/,
 ];
 
@@ -496,10 +501,10 @@ test('まだ何も選んでいないときの声はずんだもん。ブラウ�
 	await mockSpeech(page, { voices: THREE_VOICES, endMs: null, keepDefaultVoice: true });
 	await mockAudio(page);
 	await page.goto(WORK);
-	await expect(page.locator('.ks-voice select')).toHaveValue('r:zundamon:wav');
+	await expect(page.locator('.ks-voice select')).toHaveValue('r:zundamon:mp3');
 	await page.locator('.ks-start').click();
 	await expect.poll(() => page.evaluate(() => (window as any).__played.length)).toBe(1);
-	expect(await page.evaluate(() => (window as any).__played[0])).toMatch(/voice\/zundamon\//);
+	expect(await page.evaluate(() => (window as any).__played[0])).toMatch(/voice\/zundamon\/.*\.mp3$/);
 
 	await page.locator('.ks-voice select').selectOption('b:声A');
 	await page.reload();
@@ -523,7 +528,7 @@ test('開いただけでは、sessionStorage に何も書かない', async ({ pa
 	await mockSpeech(page, { voices: THREE_VOICES, endMs: null, keepDefaultVoice: true });
 	await mockAudio(page);
 	await page.goto(WORK);
-	await expect(page.locator('.ks-voice select')).toHaveValue('r:zundamon:wav');
+	await expect(page.locator('.ks-voice select')).toHaveValue('r:zundamon:mp3');
 	expect(await page.evaluate(() => sessionStorage.length)).toBe(0);
 });
 
@@ -538,7 +543,7 @@ test('選んだ声は、別のタブでは覚えていない', async ({ page, co
 	await mockSpeech(other, { voices: THREE_VOICES, endMs: null, keepDefaultVoice: true });
 	await mockAudio(other);
 	await other.goto(WORK);
-	await expect(other.locator('.ks-voice select')).toHaveValue('r:zundamon:wav');
+	await expect(other.locator('.ks-voice select')).toHaveValue('r:zundamon:mp3');
 });
 
 // 以前は localStorage の 2 つのキーに残していた。開いた人の手元から消す（clear-old-storage.js）
@@ -552,7 +557,7 @@ test('以前 localStorage に残した 2 つのキーは、開いたときに消
 	});
 
 	await page.reload();
-	await expect(page.locator('.ks-voice select')).toHaveValue('r:zundamon:wav');
+	await expect(page.locator('.ks-voice select')).toHaveValue('r:zundamon:mp3');
 	expect(await page.evaluate(() => [localStorage.getItem('kamishibai.voice'), localStorage.getItem('kamishibai.voice.recorded')])).toEqual([null, null]);
 });
 
@@ -628,9 +633,8 @@ test('音声の一覧は、台本の全文・全声と合い、音声ファイ�
 	const crypto = await import('crypto');
 	const { applyFix } = await import(path.join(ROOT, 'tools/20_build/voice-fix.ts'));
 	const engineOf: Record<string, [string, number]> = { zundamon: ['voicevox', 3], metan: ['voicevox', 2], mao: ['aivis', 888753760], kohaku: ['aivis', 1878365376] };
-	expect(list.voices.map((v: any) => v.key)).toEqual(['zundamon', 'metan', 'mao', 'kohaku']);
-	// 一覧の値（r:key:形式）の形式は、voice.js の format から作る（p261012-01）
-	expect(list.voices.map((v: any) => v.format)).toEqual(['wav', 'wav', 'wav', 'wav']);
+	// 一覧の値（r:key:形式）の形式は、voice.js の format から作る（p261012-01）。声ごとに mp3、wav の順（p261012-02）
+	expect(list.voices.map((v: any) => `${v.key}:${v.format}`)).toEqual(['zundamon:mp3', 'zundamon:wav', 'metan:mp3', 'metan:wav', 'mao:mp3', 'mao:wav', 'kohaku:mp3', 'kohaku:wav']);
 	for (const v of list.voices) {
 		expect(v.scenes.length).toBe(story.scenes.length);
 		story.scenes.forEach((scene: any, i: number) => {
@@ -644,14 +648,17 @@ test('音声の一覧は、台本の全文・全声と合い、音声ファイ�
 				expect(item.ends.length, `場面 ${i + 1}-${k + 1} の句の数（${v.key}）`).toBe(phraseCount(s));
 				expect(item.ends.every((e: number, j: number) => j === 0 || e > item.ends[j - 1])).toBe(true);
 				// 最後の句の終わりは、音声の長さ（16 ビット・モノラル。ヘッダ 44 バイトとして概算）と 0.1 秒以内で合う
-				const wav = fs.readFileSync(file);
-				const seconds = (wav.length - 44) / 2 / wav.readUInt32LE(24);
-				expect(Math.abs(item.ends[item.ends.length - 1] - seconds), `場面 ${i + 1}-${k + 1} の長さ（${v.key}）`).toBeLessThan(0.1);
+				// mp3 は wav の時刻をそのまま使う（長さの差は最大 0.3 ミリ秒。p261012-02 の 75-A）。長さは wav で見る
+				if (v.format === 'wav') {
+					const wav = fs.readFileSync(file);
+					const seconds = (wav.length - 44) / 2 / wav.readUInt32LE(24);
+					expect(Math.abs(item.ends[item.ends.length - 1] - seconds), `場面 ${i + 1}-${k + 1} の長さ（${v.key}）`).toBeLessThan(0.1);
+				}
 				// 音声が今の読みで作られている（読みを直したのに作り直していない音声を見つける）
 				const [engine, id] = engineOf[v.key];
 				const spoken = engine === 'aivis' ? applyFix(read[k], v.key) : read[k];
 				const fp = crypto.createHash('sha256').update(`${engine}\n${id}\n${spoken}`).digest('hex').slice(0, 8);
-				expect(item.file, `場面 ${i + 1}-${k + 1} が今の読みで作られている（${v.key}）`).toContain(`-${fp}.wav`);
+				expect(item.file, `場面 ${i + 1}-${k + 1} が今の読みで作られている（${v.key}）`).toContain(`-${fp}.${v.format}`);
 			});
 		});
 	}
