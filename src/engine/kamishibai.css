@@ -124,63 +124,114 @@ body {
 	font-size: clamp(17px, 2vw, 24px);
 	line-height: 1.7;
 }
-/* 読んでいる文に色を付け、読み終えた部分は薄くする */
+/* 読んでいる句は、青の太字に薄い青の背景で強調する。読み終えた部分は薄くする */
 .ks-caption .ks-now {
-	background: #fdeef2;
-	color: #a8284e;
+	background: #dcebff;
+	color: #0b4a9e;
 	font-weight: 700;
+	border-radius: 4px;
+	-webkit-box-decoration-break: clone;
+	box-decoration-break: clone;
 }
 .ks-caption .ks-said {
 	background: transparent;
 	color: #4a5568;
 }
-/* 「音」「読み上げ」のボタンと、読み上げの声 */
-.ks-options {
-	display: flex;
-	flex-wrap: wrap;
-	justify-content: center;
-	align-items: center;
-	gap: 8px 12px;
-	margin: 10px 0 0;
-	font-size: 0.85em;
-}
+/* 「音」「読み上げ」のスイッチ形のボタンと、読み上げの声。操作は 1 列に並べ、狭い画面では折り返す */
 .ks-toggle {
-	padding: 2px 12px;
-	border: 1px solid #c9ced8;
+	position: relative;
+	display: inline-flex;
+	align-items: center;
+	height: 2.2em;
+	padding: 0 3em 0 10px;	/* 右にスイッチ。「音: (  ●)」の形 */
+	border: 1px solid transparent;
 	border-radius: 999px;
-	background: #fff;
-	color: var(--ks-ink, #1c2330);
+	background: linear-gradient(100deg, var(--ks-navy1, #12224d), var(--ks-navy2, #2f5fbf));
+	color: #fff;
 	font: inherit;
+	font-size: 0.85em;
 	font-weight: 700;
+	white-space: nowrap;
 	cursor: pointer;
+	box-shadow: 0 1px 3px rgba(18, 34, 77, 0.3);
+}
+/* スイッチの溝と、動く丸 */
+.ks-toggle::before {
+	content: "";
+	position: absolute;
+	right: 8px;
+	top: 50%;
+	width: 1.8em;
+	height: 1.1em;
+	transform: translateY(-50%);
+	border-radius: 999px;
+	background: rgba(255, 255, 255, 0.35);
+}
+.ks-toggle::after {
+	content: "";
+	position: absolute;
+	right: calc(8px + 2px);
+	top: 50%;
+	width: 0.9em;
+	height: 0.9em;
+	transform: translateY(-50%);
+	border-radius: 50%;
+	background: #fff;
+	box-shadow: 0 1px 2px rgba(0, 0, 0, 0.35);
+	transition: right 0.15s;
 }
 .ks-toggle[aria-pressed="false"] {
-	background: #eceff3;
+	border-color: #c9ced8;
+	background: #fff;
 	color: #4a5568;
+	box-shadow: none;
+}
+.ks-toggle[aria-pressed="false"]::before {
+	background: #c9ced8;
+}
+.ks-toggle[aria-pressed="false"]::after {
+	right: calc(8px + 1.8em - 0.9em - 2px);
+}
+.ks-toggle:focus-visible, .ks-nav:focus-visible, .ks-voice select:focus-visible {
+	outline: 3px solid #f0a548;
+	outline-offset: 2px;
 }
 .ks-voice {
 	background: transparent;
 	color: #4a5568;
 }
 .ks-voice select {
+	max-width: 36em;
+	height: 2.2em;
 	font: inherit;
-	padding: 1px 6px;
+	font-size: 0.85em;
+	padding: 0 8px;
 	border: 1px solid #c9ced8;
-	border-radius: 6px;
+	border-radius: 999px;
 	background: #fff;
 	color: var(--ks-ink, #1c2330);
 	cursor: pointer;
 }
 .ks-controls {
 	display: flex;
+	flex-wrap: wrap;
 	justify-content: center;
 	align-items: center;
-	gap: 18px;
+	gap: 8px 10px;
 	margin-top: 14px;
+	/* 絵の幅（高さに合わせて決まる）より広く取り、広い画面では 1 行に収める。狭い画面では折り返す */
+	position: relative;
+	left: 50%;
+	width: min(1500px, calc(100vw - 32px));
+	transform: translateX(-50%);
 }
 .ks-nav {
-	width: 2.4em;
-	height: 1.7em;
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	padding: 0;
+	width: 1.9em;
+	height: 1.5em;
 	border: none;
 	border-radius: 8px;
 	background: linear-gradient(100deg, var(--ks-navy1, #12224d), var(--ks-navy2, #2f5fbf));
@@ -197,7 +248,7 @@ body {
 	cursor: default;
 }
 .ks-page {
-	min-width: 5em;
+	min-width: 4em;
 	text-align: center;
 	font-weight: 700;
 	background: transparent;

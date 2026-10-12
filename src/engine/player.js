@@ -8,6 +8,8 @@
 	const AFTER_MS = 1500;	// 読み終えてから次の場面へ送るまでの間
 	const MIN_SCENE_MS = 5000;	// 1 場面を見せる最短の時間。短い文でも絵の動きを見せる
 	const NO_VOICE_MS_PER_CHAR = 180;	// 声が無いとき、字幕を読む時間の目安（1 文字あたり）
+	const GUESS_MS_PER_CHAR = 150;	// 読んだ位置の合図が来ない声で、句の終わりを見積もる読み速度（1 文字あたり）
+	const VOICE_KEY = 'kamishibai.voice';	// 選んだ声を残す sessionStorage のキー（p261012-01）
 
 	// 文ごとに区切る。閉じかぎ括弧は前の文に付ける
 	function sentences(text) {
@@ -24,15 +26,25 @@
 		return ends;
 	}
 
-	// 読む文 read を pos 文字目まで読んだとき、字幕の文 shown のどこまで色を変えるかを返す
-	// 色の境目は、読んでいる句の終わりまで進め、声が次の句に入るまでそこで待つ。
-	// 読みを変えた文（read）でも「、」「。」の数は字幕と同じなので、何番目の句かで対応させる
-	function captionEnd(shown, read, pos) {
+	// 読む文 read を pos 文字目まで読んだとき、読んでいるのが何番目の句か（0 から）を返す
+	// 読みを変えた文（read）でも「、」「。」の数は字幕と同じなので、字幕の句とは番号で対応させる
+	function phraseAt(read, pos) {
 		const readEnds = phraseEnds(read);
-		let k = readEnds.findIndex((e) => e >= pos);
-		if (k < 0) k = readEnds.length - 1;
-		const shownEnds = phraseEnds(shown);
-		return shownEnds[Math.min(k, shownEnds.length - 1)];
+		const k = readEnds.findIndex((e) => e >= pos);
+		return k < 0 ? readEnds.length - 1 : k;
+	}
+
+	// 操作ボタンの図形。文字（‹ › ⏮ ⏸）は字体によって上下の位置がずれるため、中心を揃えた SVG で描く
+	const ICONS = {
+		first: '<path d="M5 5h2.5v14H5zM19 5v14L8.5 12z"/>',
+		prev: '<path d="M15 5l-7 7 7 7" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>',
+		next: '<path d="M9 5l7 7-7 7" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>',
+		pause: '<path d="M6 5h4v14H6zM14 5h4v14h-4z"/>',
+		play: '<path d="M7 4.5v15l12-7.5z"/>',
+	};
+	function setIcon(button, name) {
+		button.innerHTML = '<svg viewBox="0 0 24 24" width="1em" height="1em" fill="currentColor" aria-hidden="true" focusable="false">' + ICONS[name] + '</svg>';
+		button.dataset.icon = name;
 	}
 
 	function el(tag, cls, text) {
@@ -60,6 +72,8 @@
 	// 効果音と BGM は sound.js（window.KamishibaiSound）を先に読み込んだときだけ鳴らす
 	function start(story, root = document.body) {
 		const speech = window.KamishibaiSpeech || null;
+		// 事前生成の音声（recorded.js）。選んでいるときは、ブラウザの声ではなくこちらを鳴らす
+		const recorded = window.KamishibaiRecorded || null;
 		const sound = window.KamishibaiSound || null;
 		let speechOn = true;	// 「読み上げ」ボタンで切り替える
 		document.title = story.title;
@@ -82,27 +96,29 @@
 		const caption = el('p', 'ks-caption');
 		caption.setAttribute('aria-live', 'polite');
 
-		const first = el('button', 'ks-nav ks-first', '⏮');
+		const first = el('button', 'ks-nav ks-first');
+		setIcon(first, 'first');
 		first.setAttribute('aria-label', '表紙に戻る');
 		first.title = '表紙に戻る';
-		const prev = el('button', 'ks-nav ks-prev', '‹');
+		const prev = el('button', 'ks-nav ks-prev');
+		setIcon(prev, 'prev');
 		prev.setAttribute('aria-label', '前の場面');
-		const next = el('button', 'ks-nav ks-next', '›');
+		const next = el('button', 'ks-nav ks-next');
+		setIcon(next, 'next');
 		next.setAttribute('aria-label', '次の場面');
 		const page = el('span', 'ks-page');
 		const pauseButton = el('button', 'ks-nav ks-pause');
-		const controls = el('div', 'ks-controls');
-		controls.append(first, prev, page, next, pauseButton);
 		// 「音」（効果音と BGM）と「読み上げ」を別々に消せるボタン。押すたびにオン・オフが替わる
 		const soundButton = el('button', 'ks-toggle ks-sound');
 		const speechButton = el('button', 'ks-toggle ks-speech');
 		const voiceInfo = el('span', 'ks-voice');
-		const options = el('div', 'ks-options');
-		if (sound !== null) options.append(soundButton);
-		options.append(speechButton, voiceInfo);
+		// 1 列に並べる: 音 ／ 表紙へ・前・ページ・次・一時停止 ／ 読み上げ・声
+		const controls = el('div', 'ks-controls');
+		if (sound !== null) controls.append(soundButton);
+		controls.append(first, prev, page, next, pauseButton, speechButton, voiceInfo);
 
 		const main = el('main', 'ks-main');
-		main.append(frame, caption, controls, options);
+		main.append(frame, caption, controls);
 		root.append(header, main);
 
 		let token = 0;	// 読み上げの回。場面が変わったら増やし、前の回の合図を捨てる
@@ -131,8 +147,53 @@
 			}, ms);
 		}
 
+		function usingRecorded() {
+			return recorded !== null && recorded.current() !== null;
+		}
+
+		// 選んだ声は、声の一覧の値（b:声の名前 / r:key:形式）1 つを sessionStorage に残す（p261012-01）
+		// タブを閉じれば消える。残せない環境（プライベートウィンドウ等）でも、声は選べる
+		function loadVoiceChoice() {
+			try {
+				return sessionStorage.getItem(VOICE_KEY);
+			} catch (e) {
+				return null;
+			}
+		}
+		function saveVoiceChoice(value) {
+			try {
+				sessionStorage.setItem(VOICE_KEY, value);
+			} catch (e) {
+				// 残せなくても、このタブの間は選んだ声を使う
+			}
+		}
+
+		// 事前生成の声の一覧の値。区切りは「:」。key に「:」は使わない（make-voice.ts が確かめる）
+		function recordedValue(v) {
+			return 'r:' + v.key + ':' + v.format;
+		}
+
+		// 開いたときに、残っていた声を選び直す。無い・一覧に無いときは、既定の選び方のまま
+		// b: の後ろは声の名前で、分けない（名前に「:」があってもよい）
+		function restoreVoice() {
+			const saved = loadVoiceChoice();
+			if (saved === null) return;
+			if (saved.startsWith('b:')) {
+				if (recorded !== null) recorded.select(null);
+				if (speech !== null) speech.prefer(saved.slice(2));
+			} else if (saved.startsWith('r:') && recorded !== null) {
+				const v = recorded.voices().find((x) => recordedValue(x) === saved);
+				if (v) recorded.select(v.key);
+			}
+		}
+
 		function voiceAvailable() {
-			return speech !== null && speech.ready();
+			return usingRecorded() || (speech !== null && speech.ready());
+		}
+
+		function cancelVoice() {
+			if (speech) speech.cancel();
+			if (recorded) recorded.cancel();
 		}
 
 		function speechReady() {
@@ -141,9 +202,12 @@
 
 		function renderToggles() {
 			const on = sound !== null && sound.isEnabled();
-			soundButton.textContent = '音: ' + (on ? 'オン' : 'オフ');
+			// オン・オフは文字ではなく、スイッチの丸の位置と aria-pressed で示す
+			soundButton.textContent = '音:';
+			soundButton.setAttribute('aria-label', '音: ' + (on ? 'オン' : 'オフ'));
 			soundButton.setAttribute('aria-pressed', String(on));
-			speechButton.textContent = '読み上げ: ' + (speechOn ? 'オン' : 'オフ');
+			speechButton.textContent = '読み上げ:';
+			speechButton.setAttribute('aria-label', '読み上げ: ' + (speechOn ? 'オン' : 'オフ'));
 			speechButton.setAttribute('aria-pressed', String(speechOn));
 		}
 
@@ -161,15 +225,22 @@
 			sound.schedule(scene.sounds || []);
 		}
 
-		// 字幕を文ごとに出す。now 番目の文を読んでいる途中で、pos 文字目まで読んだ
-		function renderCaption(shown, now, pos) {
+		// 字幕を文ごとに出す。now 番目の文の phrase 番目の句を読んでいる。
+		// 読んでいる句は強調（ks-now）、読み終えた所は薄く（ks-said）、まだの所は普通の字にする
+		function renderCaption(shown, now, phrase) {
 			caption.textContent = '';
 			shown.forEach((s, k) => {
-				if (k === now && pos > 0) {
-					caption.append(el('span', 'ks-said', s.slice(0, pos)), el('span', 'ks-now', s.slice(pos)));
-				} else {
-					caption.append(el('span', k < now ? 'ks-said' : k === now ? 'ks-now' : null, s));
+				if (k !== now) {
+					caption.append(el('span', k < now ? 'ks-said' : null, s));
+					return;
 				}
+				const ends = phraseEnds(s);
+				const i = Math.min(phrase, ends.length - 1);
+				const from = i > 0 ? ends[i - 1] : 0;
+				const to = ends[i];
+				if (from > 0) caption.append(el('span', 'ks-said', s.slice(0, from)));
+				caption.append(el('span', 'ks-now', s.slice(from, to)));
+				if (to < s.length) caption.append(el('span', null, s.slice(to)));
 			});
 		}
 
@@ -179,7 +250,7 @@
 			timer = null;
 			timerFn = null;
 			speaking = null;
-			if (speech) speech.cancel();
+			cancelVoice();
 			if (sound) sound.duck(false);
 		}
 
@@ -214,6 +285,30 @@
 			// 読み上げ中は BGM を小さくする
 			if (sound) sound.duck(true);
 			let i = from;
+			// ブラウザの声で k 番目の文を読む。事前生成の音声が鳴らせなかったときも、これで読み続ける（37-A）。
+			// ブラウザの声も無ければ、字幕だけで読む時間をおく
+			const speakByBrowser = (k, next) => {
+				if (speech === null || !speech.ready()) {
+					later(next, shown[k].length * NO_VOICE_MS_PER_CHAR);
+					return;
+				}
+				// 読んだ位置の合図（boundary）が来ない声がある（Chrome のネットの声など）。そのままだと 1 句目で止まるため、
+				// 文字数から句の終わりの時刻を見積もって進める。合図が 1 度でも来たら、合図に任せる
+				let gotBoundary = false;
+				const guesses = phraseEnds(read[k]).slice(0, -1).map((end, i) => setTimeout(() => {
+					if (!gotBoundary && my === token) renderCaption(shown, k, i + 1);
+				}, end * GUESS_MS_PER_CHAR));
+				speech.speak(read[k], {
+					onboundary: (pos) => {
+						gotBoundary = true;
+						if (my === token) renderCaption(shown, k, phraseAt(read[k], pos));
+					},
+					onend: () => {
+						guesses.forEach(clearTimeout);
+						next();
+					},
+				});
+			};
 			const step = () => {
 				if (my !== token) return;
 				if (i >= read.length) {
@@ -222,14 +317,23 @@
 				}
 				const k = i;
 				speaking = k;
-				renderCaption(shown, k, 0);
-				speech.speak(read[k], {
-					onboundary: (pos) => {
-						if (my === token) renderCaption(shown, k, captionEnd(shown[k], read[k], pos));
+				renderCaption(shown, k, 0);	// 最初の句から
+				const next = () => {
+					i++;
+					step();
+				};
+				if (!usingRecorded()) {
+					speakByBrowser(k, next);
+					return;
+				}
+				// 事前生成の音声: 句に入るたびに、その句を強調する
+				recorded.speak(current - 1, k, {
+					onphrase: (n) => {
+						if (my === token) renderCaption(shown, k, n);
 					},
-					onend: () => {
-						i++;
-						step();
+					onend: next,
+					onerror: () => {
+						if (my === token) speakByBrowser(k, next);
 					},
 				});
 			};
@@ -256,7 +360,7 @@
 
 		function renderPause() {
 			const label = paused ? '再開' : '一時停止';
-			pauseButton.textContent = paused ? '▶' : '⏸';
+			setIcon(pauseButton, paused ? 'play' : 'pause');
 			pauseButton.setAttribute('aria-label', label);
 			pauseButton.title = label;
 		}
@@ -283,7 +387,7 @@
 					resumeFrom = speaking;
 					token++;
 					speaking = null;
-					speech.cancel();
+					cancelVoice();
 				}
 				if (sound) sound.pause();
 				pauseCards(true);
@@ -324,7 +428,9 @@
 		// 一覧を開いている間に作り直すと閉じてしまうため、声の一覧が変わったときだけ作り直す
 		function renderVoice() {
 			voiceInfo.textContent = '';
-			if (!voiceAvailable()) {
+			const browserVoices = speech !== null ? speech.voices() : [];
+			const recordedVoices = recorded !== null ? recorded.voices() : [];
+			if (browserVoices.length + recordedVoices.length === 0) {
 				voiceInfo.textContent = '声: なし（字幕だけで進む）';
 				return;
 			}
@@ -332,16 +438,35 @@
 			const label = el('label', null, '声: ');
 			const select = el('select');
 			select.setAttribute('aria-label', '読み上げの声');
-			for (const v of speech.voices()) {
-				// 「内蔵」は PC・スマホに入っていて、ネットに繋がずに動く声
-				const o = el('option', null, v.name + '（' + (v.local ? '内蔵' : 'ネット') + '）');
-				o.value = v.name;
+			// 表示は「費用: 置き場: 作り方: 名前」。「内蔵」は PC・スマホに入っていて、ネットに繋がずに動く声
+			for (const v of browserVoices) {
+				const o = el('option', null, '無料: ' + (v.local ? '内蔵' : 'ネット') + ': 動的生成: ' + v.name);
+				o.value = 'b:' + v.name;
 				select.append(o);
 			}
-			select.value = speech.voiceName();
+			for (const v of recordedVoices) {
+				const o = el('option', null, v.label);
+				o.value = recordedValue(v);
+				select.append(o);
+			}
+			// どれも選ばれていない（ブラウザの声が無く、事前生成も選んでいない）ときは、空にしておく
+			if (usingRecorded()) select.value = recordedValue(recordedVoices.find((v) => v.key === recorded.current()));
+			else if (speech !== null && speech.ready()) select.value = 'b:' + speech.voiceName();
+			else select.selectedIndex = -1;
+			// 権利表記（VOICEVOX の「VOICEVOX - 名前」など）は、選択欄の文言そのもので示す
 			select.addEventListener('change', () => {
+				let changed;
+				if (select.value.startsWith('r:')) {
+					const v = recordedVoices.find((x) => recordedValue(x) === select.value);
+					changed = recorded.select(v.key);
+				} else {
+					if (recorded !== null) recorded.select(null);
+					changed = speech.setVoice(select.value.slice(2));
+				}
+				// 残すのは利用者が選んだときだけ。開いたときに自動で選んだ声は残さない（71-A）
+				if (changed) saveVoiceChoice(select.value);
 				// 選んだ声で、今の場面を頭から読み直す
-				if (speech.setVoice(select.value)) rereadScene();
+				if (changed) rereadScene();
 			});
 			label.append(select);
 			voiceInfo.append(label);
@@ -439,6 +564,7 @@
 		render();
 		renderToggles();
 		renderPause();
+		restoreVoice();
 		// 声の一覧が後から届いたら、表示を直す
 		renderVoice();
 		if (speech !== null) speech.onVoicesChanged(renderVoice);
