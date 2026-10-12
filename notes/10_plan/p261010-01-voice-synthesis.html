@@ -1,0 +1,263 @@
+﻿<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>計画: 音声合成サービスで読み上げの声を作る</title>
+<style>
+:root {
+	--navy1: #12224d;
+	--navy2: #2f5fbf;
+	--ink: #1c2330;
+	--ink-soft: #4a5568;
+	--line: #d9dfe8;
+	--code-bg: #f4f6fa;
+	--link: #1a4fa0;
+	--accent: #12224d;
+	--accent2: #2f5fbf;
+	--soft: #f2f5fb;
+}
+.ch01 { --accent: hsl(280, 78%, 25%); --accent2: hsl(280, 58%, 55%); --soft: hsl(280, 28%, 95%); }
+.ch02 { --accent: hsl(224, 78%, 25%); --accent2: hsl(224, 58%, 55%); --soft: hsl(224, 28%, 95%); }
+.ch03 { --accent: hsl(168, 78%, 25%); --accent2: hsl(168, 58%, 55%); --soft: hsl(168, 28%, 95%); }
+.ch04 { --accent: hsl(112, 78%, 25%); --accent2: hsl(112, 58%, 55%); --soft: hsl(112, 28%, 95%); }
+.ch05 { --accent: hsl(56, 78%, 25%); --accent2: hsl(56, 58%, 55%); --soft: hsl(56, 28%, 95%); }
+.ch06 { --accent: hsl(0, 78%, 25%); --accent2: hsl(0, 58%, 55%); --soft: hsl(0, 28%, 95%); }
+* { box-sizing: border-box; }
+body {
+	margin: 0;
+	background: #fff;
+	color: var(--ink, #1c2330);
+	font-family: "Segoe UI", "Hiragino Kaku Gothic ProN", Meiryo, sans-serif;
+	font-size: 15.5px;
+	line-height: 1.85;
+}
+.titlebar {
+	background: linear-gradient(135deg, var(--navy1, #12224d), var(--navy2, #2f5fbf));
+	color: #fff;
+	padding: 34px 30px 30px;
+}
+.titlebar .inner { max-width: 1600px; margin: 0 auto; }
+.titlebar h1 { margin: 0 0 8px; font-size: 1.9em; color: #fff; }
+.titlebar .lead { font-size: 0.95em; opacity: 0.9; }
+.titlebar .date { font-size: 0.85em; opacity: 0.85; }
+.wrap { max-width: 1600px; margin: 0 auto; padding: 0 30px; }
+a { color: var(--link, #1a4fa0); background: transparent; }
+.wrap > a.back { margin-top: 18px; }
+a.back {
+	display: inline-block;
+	padding: 2px 12px;
+	border-radius: 6px;
+	background: linear-gradient(100deg, var(--navy1, #12224d), var(--navy2, #2f5fbf));
+	color: #fff;
+	text-decoration: none;
+	font-weight: 700;
+}
+code {
+	background: var(--code-bg, #f4f6fa);
+	border: 1px solid var(--line, #d9dfe8);
+	color: #17335f;
+	padding: 1px 5px;
+	border-radius: 3px;
+	font-size: 0.92em;
+}
+section {
+	padding: 4px 26px 26px;
+	margin: 34px 0;
+	border-radius: 8px;
+	background: linear-gradient(180deg, var(--soft, #f2f5fb), #fff);
+	color: var(--ink, #1c2330);
+}
+section h1 {
+	padding: 14px 20px;
+	margin: 26px 0 20px;
+	border-radius: 8px;
+	background: linear-gradient(100deg, var(--accent, #12224d), var(--accent2, #2f5fbf));
+	color: #fff;
+	box-shadow: 0 2px 8px rgba(0,0,0,0.18);
+	font-size: 1.45em;
+}
+section h2 {
+	padding: 6px 12px;
+	margin: 30px 0 12px;
+	border-left: 6px solid var(--accent, #12224d);
+	background: linear-gradient(90deg, var(--soft, #f2f5fb), #fff);
+	color: var(--accent, #12224d);
+	font-size: 1.15em;
+}
+.tablewrap { overflow-x: auto; }
+table {
+	border-collapse: collapse;
+	width: 100%;
+	border-radius: 8px;
+	overflow: hidden;
+	box-shadow: 0 1px 4px rgba(0,0,0,0.08);
+	font-size: 0.95em;
+}
+th, td {
+	padding: 9px 12px;
+	border-bottom: 1px solid var(--line, #d9dfe8);
+	text-align: left;
+	vertical-align: top;
+}
+th {
+	background: linear-gradient(100deg, var(--accent, #12224d), var(--accent2, #2f5fbf));
+	color: #fff;
+}
+td { background: #fff; color: var(--ink, #1c2330); }
+tr:nth-child(even) td { background: #fafbfe; color: var(--ink, #1c2330); }
+td.nowrap { white-space: nowrap; }
+.callout {
+	border-left: 6px solid var(--accent, #12224d);
+	background: linear-gradient(180deg, var(--soft, #f2f5fb), #fff);
+	color: var(--ink, #1c2330);
+	border-radius: 0 8px 8px 0;
+	padding: 10px 16px;
+	margin: 14px 0;
+}
+.callout strong { color: var(--accent, #12224d); background: transparent; }
+footer {
+	max-width: 1600px;
+	margin: 0 auto;
+	padding: 18px 30px 30px;
+	color: var(--ink-soft, #4a5568);
+	background: #fff;
+}
+</style>
+</head>
+<body>
+<div class="titlebar">
+	<div class="inner">
+		<h1>計画: 音声合成サービスで読み上げの声を作る</h1>
+		<div class="lead">ブラウザの声に頼らず、前もって作った音声を紙芝居で鳴らす</div>
+		<div class="date">📅 作成: 2026-10-10 / 更新: 2026-10-11</div>
+	</div>
+</div>
+<div class="wrap">
+	<a class="back" href="../../README.html">⌂</a>
+
+	<section class="ch01" id="ch01">
+		<h1>目的</h1>
+		<ul>
+			<li>いまの読み上げはブラウザの声（Web Speech API）で、声の有無・質・読み方が端末ごとに違う。スマホでは日本語の声が無いこともある</li>
+			<li>音声合成で、場面の文を前もって音声ファイルにしておき、どの端末でも同じ声・同じ読みで鳴らす</li>
+			<li>ブラウザの声は、声の選択欄に残す</li>
+		</ul>
+		<p>根拠は調査資料 <a href="../01_research/p261010-01-voice-synthesis.html">p261010-01</a>。実機で確かめたのは VOICEVOX だけ（1 文を合成でき、合成の前に句ごとの時刻が取れた）。</p>
+	</section>
+
+	<section class="ch02" id="ch02">
+		<h1>方針</h1>
+		<ul>
+			<li><strong>音声は前もって作り、作品と一緒に置く</strong>（調査資料の型 1）。見る人の操作のたびにサービスへ問い合わせない。鍵も常駐のサーバーも要らず、GitHub Pages に置ける</li>
+			<li><strong>作るのは文ごと</strong>。台本は 1 場面に 1〜3 文あり、いまの読み上げは文ごとに読み、文の終わりで次の文へ進み、最後の文のあとで次の場面へ進む。一時停止は止めた文を頭から読み直す。この作りを変えない</li>
+			<li><strong>読みは <code>story.js</code> の <code>read</code> を使う</strong>。字幕と読みを分けるしくみ（「にっぽんいち」等）をそのまま使う</li>
+			<li><strong>生成は手元のスクリプトで行う</strong>（<code>tools/20_build/</code>）。エンジンは作るときだけ起動する。台本を直したら、変わった文だけを作り直す</li>
+			<li><strong>声ごとに、フォルダと表示名を持つ</strong>。声を足すときは、声の一覧に 1 件足すだけにする</li>
+			<li><strong>鳴らすのは <code>&lt;audio&gt;</code></strong>。Web Audio の無いブラウザ（Windows 版の WebKit 等）でも鳴る。BGM を下げる・一時停止は、いまのしくみに合わせる</li>
+		</ul>
+	</section>
+
+	<section class="ch03" id="ch03">
+		<h1>利用者が決めたこと</h1>
+		<h2>使う声</h2>
+		<ul>
+			<li><strong>VOICEVOX</strong> の <strong>ずんだもん</strong>と<strong>四国めたん</strong>を足す（試した結果で採否を決める）</li>
+			<li><strong>AivisSpeech</strong> の<strong>まお</strong>と<strong>コハク</strong>も声の一覧に足す（同じ文で聞き比べ、OK と判断済み）</li>
+			<li>クラウド（Azure 等）は使わない。外部サービスに文を送らず、計画 p261004-01 の「外部サービスを使わない」を保つ</li>
+		</ul>
+		<h2>声の選択欄の表示（課題 <a href="../40_issues/issues.html#i261011-01">i261011-01</a>）</h2>
+		<p>先頭に「費用: 種類: 作り方:」を置き、名前を最後にする。</p>
+		<div class="tablewrap">
+		<table>
+			<thead>
+				<tr><th>声</th><th>表示</th></tr>
+			</thead>
+			<tbody>
+				<tr><td class="nowrap">ブラウザの内蔵の声</td><td><code>無料: 内蔵: 動的生成: 声の名前</code></td></tr>
+				<tr><td class="nowrap">ブラウザのネットの声</td><td><code>無料: ネット: 動的生成: 声の名前</code></td></tr>
+				<tr><td class="nowrap">VOICEVOX</td><td><code>無料: wav 6MB: VOICEVOX: ずんだもん</code> ／ <code>無料: wav 5MB: VOICEVOX: 四国めたん</code>（「事前生成」の代わりに、形式とその声の音声の合計の大きさを出す。大きさは make-voice が数える）</td></tr>
+				<tr><td class="nowrap">AivisSpeech</td><td><code>無料: wav 11MB: AivisSpeech: まお</code> ／ <code>無料: wav 11MB: AivisSpeech: コハク</code></td></tr>
+			</tbody>
+		</table>
+		</div>
+		<ul>
+			<li>権利表記は、選択欄の右に別のラベルを出さず、選択欄の文言（規約が示す書き方に近い「VOICEVOX: ずんだもん」、AivisSpeech も同じ形の「AivisSpeech: まお」など。コロンの後に空白を入れるのは利用者の指示で、規約の例（空白なし）とは少し違う）で示す（利用者の判断。2026-10-11。はじめは VOICEVOX のときだけ別ラベルを出す案だった）</li>
+			<li>まだ何も選んでいないときの声は、事前生成のずんだもん（2026-10-11）。ブラウザの声を選んだ人は、開き直してもそのまま</li>
+			<li>操作は 1 列に並べる: 音（スイッチ形のボタン）・表紙へ・前・ページ・次・一時停止・読み上げ（同じ形のボタン）・声の選択欄。狭い画面では折り返す（2026-10-11）</li>
+			<li>AivisSpeech（まお・コハク）は、ACML 1.0 でクレジットは任意。商用利用・公開も、禁止事項に当たらなければ可（2026-10-11 に読んだ）</li>
+		</ul>
+	</section>
+
+	<section class="ch04" id="ch04">
+		<h1>決めること</h1>
+			<p><span class="badge b-ok">決定</span> 2026-10-11 に利用者が <strong>36-A・37-A・38-A</strong> を選んだ。以下は選択肢の記録</p>
+
+		<h2>36. 字幕の色を進める単位</h2>
+		<ul>
+			<li><strong>36-A（推奨）</strong> 句（「、」「。」）ごとに進める。音声を作るときに、句の終わりの時刻を一緒に控え、再生の位置で色を進める。時刻の取り方は声で分ける。<strong>VOICEVOX は読みの情報から</strong>（合成の前に取れ、0.01〜0.06 秒の差で合った）。<strong>AivisSpeech は句ごとに別々に合成してつなぐ</strong>（読みの情報の長さが 0 で、WAV の無音からは 27 文中 1〜3 文で句の数が合わなかった。つなぎ目なら確実に分かるが、抑揚が句の境目で途切れるかは聞いて決める）。いまの見え方（15-A）を保てる</li>
+			<li><strong>36-B</strong> 文ごとに進める。作りは簡単になるが、長い文では色が動かない時間が長くなる</li>
+		</ul>
+
+		<h2>37. 音声ファイルが読めないとき</h2>
+		<ul>
+			<li><strong>37-A（推奨）</strong> ブラウザの声に替えて読み続ける。音が出ない状態を作らない</li>
+			<li><strong>37-B</strong> 字幕だけで進める。声の取り違えは起きないが、無音になる</li>
+		</ul>
+
+		<h2>38. 音声ファイルの形式</h2>
+		<ul>
+			<li><strong>38-A（推奨）</strong> 合成した WAV のまま置く。表示の「wav 6MB」のように、形式と大きさを出せる。道具が増えない。全 15 場面で、VOICEVOX は 1 声 5〜6 MB、AivisSpeech は 1 声 10〜11 MB（4 声で約 32 MB。実測）。選んだ声だけを読み込むので、初回は 5〜11 MB</li>
+			<li><strong>38-B</strong> mp3 に変えて置く。およそ 1 割になる見込み（未計測）で、スマホの通信に軽い。変換に ffmpeg を入れる必要があり（PC に無い）、表示は別の声として「wav➡mp3 99MB」の形で足す（wav は置き換えない）。選ばなかった案で、次の計画で扱う</li>
+		</ul>
+	</section>
+
+	<section class="ch05" id="ch05">
+		<h1>段階</h1>
+		<p>段階ごとに利用者の確認を取ってから次へ進む。</p>
+		<h2>段階 1: 作って聞き、測る（ほぼ済）</h2>
+		<ul>
+			<li>✅ 声 ID の確認: ずんだもん（ノーマル）3、四国めたん（ノーマル）2、まお（ノーマル）888753760、コハク（ノーマル）1878365376</li>
+			<li>✅ 4 声で全 15 場面を作り、時間（1 声 40〜60 秒）と大きさ（38 の判断）を測った。結果は調査資料</li>
+			<li>✅ 句の区切りの時刻: VOICEVOX は読みの情報から取れる。WAV の無音から取る方法は、全 27 文のうち 1〜6 文で句の数が合わず、当てにならない（結果は調査資料）</li>
+			<li>✅ AivisSpeech は、句ごとに別々に合成してつなぐと境目が確実に分かる（まお・コハクの 2 文で確認）。<code>tmp/voice-phrasewise/</code> の音声を聞き、抑揚の途切れが許せるかを決める</li>
+			<li>✅ まお・コハクの規約: AivisHub のモデルのページと ACML 1.0 の本文を読んだ（クレジットは任意、表記は「AivisSpeech: 名前」）。ずんだもん・四国めたんは、VOICEVOX 同梱の規約（policy.md）と zunko.jp の規約ページで確認した。「VOICEVOX:名前」のクレジットを記載すれば商用・非商用で使える。動画なら説明欄、アプリなら紹介画面など、見た人が気づける場所に書く。クレジットを出さない商用利用は有料契約が要る。禁止事項は、公序良俗に反する利用、政治・宗教活動、特定の個人・団体への非難、情報商材、虚偽の拡散など。表示は、規約が示す「VOICEVOX:名前」の書き方に揃え、AivisSpeech も同じ形にした（利用者の指示。2026-10-11）</li>
+			<li>作った音声は <code>tmp/voice-trial/</code> に置いてある。聞いて、読み違いがあれば <code>read</code> を直す</li>
+		</ul>
+		<h2>段階 2: 生成スクリプト（着手）</h2>
+		<ul>
+			<li><code>tools/20_build/make-voice</code>（同名の cmd ランチャー付き）で、全場面の文を声ごとに WAV にし、<code>src/works/01-momotaro/voice/&lt;声&gt;/</code> へ置く。エンジンの宛先（ポート）と声 ID は引数で渡す</li>
+			<li>文と音声の対応、句の終わりの時刻、声の表示名（権利表記を兼ねる）を、一覧のファイル（<code>voice.js</code>）に書き出す。<code>&lt;script src&gt;</code> で読めるようにし、ファイルを直接開いても動く形にする</li>
+			<li>文の中身から名前を決め、変わった文だけを作り直す</li>
+			<li>読み間違いは、全声共通の <code>read</code>（<code>story.js</code>）で直す。AivisSpeech だけの読み間違いは、<code>tools/20_build/voice-fix.ts</code> の表で、エンジンに渡す句の文字だけを替える（句の数が変わらないので、字幕の色の進みに影響しない）。例: 「荒らしては宝物を」に間（読点）を足す（2026-10-11）</li>
+			<li>読みの確認: <code>tools/20_build/list-voice-reading.ts</code> が、エンジンが返す「このかなで読む」という情報を、全文の分だけ一覧にする。音声を作る前に、読み間違いを目で見つける（2026-10-11 に全 27 文を見て、誤りは無かった）。音声の聞こえ方そのものは、聞いて確かめる</li>
+			<li>聞こえ方の確認: <code>tools/20_build/check-voice-asr.ts</code> が、音声を共有ツールの <code>transcribe</code>（whisper.cpp）で書き起こし、台本の読みとかなで比べる。違いが出た分のうち、漢字の読み違い（「宝物」→ホウモツ 等）は書き起こし側の都合として除き、残りを人が聞く。2026-10-11 に全 108 本を確かめ、人が聞いた 19 本のうち 2 本を作り直した</li>
+			<li>AivisSpeech は、同じ文でも合成のたびに少し違う音声になる。聞き取りにくい音声は、文字を替えずに作り直すだけで直ることがある（まお 4-2「おじいさん」）。声ごとの直しは <code>voice-fix.ts</code> の 3 つ目に声の key を書く（コハク 8-1「わたしが、鬼を」）</li>
+			<li>テスト（<code>tests/momotaro.spec.ts</code>）が、一覧・音声ファイル・台本の食い違いを見つける（音声の有無、句の数、長さ、今の読みで作られているか）。<code>read</code> を直して音声を作り直し忘れると落ちる</li>
+		</ul>
+		<h2>段階 3: 紙芝居で鳴らし、声の選択欄を直す（実装済み・利用者の確認待ち）</h2>
+		<p>実装: <code>src/engine/recorded.js</code>（音声の再生）、<code>player.js</code>（操作の並び・選択欄・読めないときのブラウザの声への切り替え）、<code>voice.js</code>（一覧）。テストは <code>tests/momotaro.spec.ts</code> に足した。利用者が通しで聞き、4 声が聞こえること・句ごとの色の進みを確かめた（2026-10-11）。ブラウザのネットの声（Google 日本語など）は、読んだ位置の合図が来ないため、字幕の強調が 1 句目で止まった。合図が来ない間は、文字数（1 文字 150 ミリ秒）から句の終わりを見積もって進める。そのあと、操作の並びを 1 列にし、スイッチ形のボタンにし、権利表記の別ラベルをやめ、既定の声をずんだもんにした</p>
+		<ul>
+			<li><code>src/engine/</code> に、作った音声を鳴らす読み上げを足す。いまの <code>speech.js</code> と同じ使い方（文を読む・句の位置を知らせる・止める）にそろえ、<code>player.js</code> はどちらの声でも同じに扱う</li>
+			<li>声の選択欄を、決めた表示の形に替える。権利表記は、選択欄の文言で示す</li>
+			<li>BGM を下げる・一時停止（i261008-01）・音のオン・オフと合わせる</li>
+			<li>テストを足す（作った音声で文が進む・句の色が進む・一時停止で止まる・読めないときの動き・選択欄の文言に権利表記が入る・既定の声はずんだもん・操作の並び）</li>
+		</ul>
+	</section>
+
+	<section class="ch06" id="ch06">
+		<h1>前提と確かめること</h1>
+		<ul>
+			<li>VOICEVOX は <code>C:\Tools\VOICEVOX</code> に展開済み（0.25.2）。起動しても試す間だけにする。エディタに足した古いエンジン（VOICEVOX Nemo Engine 0.24.0）は、利用者の指示で削除した（2026-10-11）。エディタの一時フォルダ（約 6 GB）も、不要なため削除した</li>
+			<li>AivisSpeech は <code>C:\Tools\AivisSpeech</code> に展開済み（1.1.0-dev）。初回の合成はモデルの読み込みで約 8 秒かかり、以降は 2〜4 秒（調査資料）</li>
+			<li>ffmpeg は PC に入っていない。mp3 にするのは、この計画の次の計画で行う（利用者の方針。2026-10-11）。表示は「wav」（小文字）とする。mp3 は別の声として足し、表示は「無料: wav➡mp3 99MB: 声の名前」の形（wav から変換した mp3 で、大きさは mp3 の合計）にしたい（利用者の希望。2026-10-11）</li>
+			<li>生成した音声を公開ページに置いてよいかは、各声の規約で確かめる。クレジットは声ごとに文言が違う</li>
+			<li>動画（p261004-01 の段階 3）を作るときも、同じ音声ファイルを使える</li>
+		</ul>
+	</section>
+</div>
+<footer>
+	<a class="back" href="../../README.html">⌂</a>
+</footer>
+</body>
+</html>

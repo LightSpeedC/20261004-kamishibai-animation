@@ -22,13 +22,20 @@ Claude Code と手元のツールだけで、紙芝居アニメーションを�
 
 - [課題: 紙芝居アニメーション](notes/40_issues/issues.md)
 
-## 4. 計画
+## 4. 調査
+
+- [調査: 日本語の音声合成サービスと仕組み](notes/01_research/p261010-01-voice-synthesis.md)
+
+## 5. 計画
 
 - [計画: 紙芝居アニメの試作（外部サービス不使用）](notes/10_plan/p261004-01-kamishibai-animation.md)
 - [計画: Web 紙芝居「桃太郎」の冒頭](notes/10_plan/p261004-02-momotaro-web.md)
 - [計画: 桃太郎を最後まで](notes/10_plan/p261004-03-momotaro-full.md)
+- [計画: 音声合成サービスで読み上げの声を作る](notes/10_plan/p261010-01-voice-synthesis.md)
+- [計画: 声の選択の残し方を改める](notes/10_plan/p261012-01-voice-storage.md)
+- [計画: 事前生成の声に mp3 を足す](notes/10_plan/p261012-02-voice-mp3.md)
 
-## 5. サンプル
+## 6. サンプル
 
 ### Windows の音声合成
 
