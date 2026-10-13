@@ -108,7 +108,7 @@ footer {
 <div class="titlebar">
 	<div class="inner">
 		<h1>状態: 紙芝居アニメーション</h1>
-		<div class="date">📅 作成: 2026-10-04 / 更新: 2026-10-12</div>
+		<div class="date">📅 作成: 2026-10-04 / 更新: 2026-10-13</div>
 	</div>
 </div>
 <div class="wrap">
@@ -129,7 +129,7 @@ footer {
 			<tr><td class="nowrap">3. 効果音と BGM</td><td class="nowrap"><span class="badge b-warn">着手</span></td><td>Web Audio API で場面ごとの効果音と、唱歌「桃太郎」の BGM を鳴らす。「音」「読み上げ」ボタンで別々に消せる。<code>src/engine/sound.js</code>。残りは、利用者が聞いて確かめること</td></tr>
 			<tr><td class="nowrap">4. 事前生成の音声</td><td class="nowrap"><span class="badge b-ok">済</span></td><td>VOICEVOX（ずんだもん・四国めたん）と AivisSpeech（まお・コハク）で文ごとの WAV を作って鳴らす（p261010-01）。生成スクリプト（<code>tools/20_build/make-voice.ts</code>）と再生（<code>src/engine/recorded.js</code>）。全 108 本の読みを音声認識（<code>tools/20_build/check-voice-asr.ts</code>）と利用者の聞き取りで確かめた。操作を 1 列に並べ、既定の声はずんだもん。権利表記は声の選択欄の文言で示す</td></tr>
 			<tr><td class="nowrap">4+. 声の選択の残し方</td><td class="nowrap"><span class="badge b-ok">済</span></td><td>選んだ声を <code>localStorage</code> から <code>sessionStorage</code>（キー 1 つ）に移し、古い値を消す。一覧の値は <code>b:声の名前</code> / <code>r:key:形式</code>（<a href="../10_plan/p261012-01-voice-storage.html">p261012-01</a>）</td></tr>
-			<tr><td class="nowrap">4++. mp3 の声</td><td class="nowrap"><span class="badge b-warn">着手</span></td><td>4 声の wav から mp3（64kbps）を作り、別の項目として足す。既定の声を mp3 のずんだもんにする（<a href="../10_plan/p261012-02-voice-mp3.html">p261012-02</a>）。実装とテストは済み。PC の Chrome で鳴ることを利用者が確かめた。残りは、公開したあとに iPhone の Safari で鳴ることを確かめること</td></tr>
+			<tr><td class="nowrap">4++. mp3 の声</td><td class="nowrap"><span class="badge b-ok">済</span></td><td>4 声の wav から mp3（64kbps）を作り、別の項目として足す。既定の声を mp3 のずんだもんにする（<a href="../10_plan/p261012-02-voice-mp3.html">p261012-02</a>）。実装とテストは済み。PC の Chrome と iPhone の Safari で鳴ることを利用者が確かめた</td></tr>
 		</tbody>
 	</table>
 	</div>
