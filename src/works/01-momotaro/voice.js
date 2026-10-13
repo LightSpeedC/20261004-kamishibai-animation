@@ -5,7 +5,7 @@ window.VOICE = {
 		{
 			"key": "zundamon",
 			"format": "mp3",
-			"label": "無料: wav➡mp3 1MB: VOICEVOX: ずんだもん",
+			"label": "無料: ﾌｧｲﾙ: VOICEVOX: ずんだもん (wav➡mp3 1MB)",
 			"scenes": [
 				[
 					{
@@ -239,7 +239,7 @@ window.VOICE = {
 		{
 			"key": "zundamon",
 			"format": "wav",
-			"label": "無料: wav 6MB: VOICEVOX: ずんだもん",
+			"label": "無料: ﾌｧｲﾙ: VOICEVOX: ずんだもん (wav 6MB)",
 			"scenes": [
 				[
 					{
@@ -473,7 +473,7 @@ window.VOICE = {
 		{
 			"key": "metan",
 			"format": "mp3",
-			"label": "無料: wav➡mp3 1MB: VOICEVOX: 四国めたん",
+			"label": "無料: ﾌｧｲﾙ: VOICEVOX: 四国めたん (wav➡mp3 1MB)",
 			"scenes": [
 				[
 					{
@@ -707,7 +707,7 @@ window.VOICE = {
 		{
 			"key": "metan",
 			"format": "wav",
-			"label": "無料: wav 5MB: VOICEVOX: 四国めたん",
+			"label": "無料: ﾌｧｲﾙ: VOICEVOX: 四国めたん (wav 5MB)",
 			"scenes": [
 				[
 					{
@@ -941,7 +941,7 @@ window.VOICE = {
 		{
 			"key": "mao",
 			"format": "mp3",
-			"label": "無料: wav➡mp3 1MB: AivisSpeech: まお",
+			"label": "無料: ﾌｧｲﾙ: AivisSpeech: まお (wav➡mp3 1MB)",
 			"scenes": [
 				[
 					{
@@ -1175,7 +1175,7 @@ window.VOICE = {
 		{
 			"key": "mao",
 			"format": "wav",
-			"label": "無料: wav 11MB: AivisSpeech: まお",
+			"label": "無料: ﾌｧｲﾙ: AivisSpeech: まお (wav 11MB)",
 			"scenes": [
 				[
 					{
@@ -1409,7 +1409,7 @@ window.VOICE = {
 		{
 			"key": "kohaku",
 			"format": "mp3",
-			"label": "無料: wav➡mp3 1MB: AivisSpeech: コハク",
+			"label": "無料: ﾌｧｲﾙ: AivisSpeech: コハク (wav➡mp3 1MB)",
 			"scenes": [
 				[
 					{
@@ -1643,7 +1643,7 @@ window.VOICE = {
 		{
 			"key": "kohaku",
 			"format": "wav",
-			"label": "無料: wav 11MB: AivisSpeech: コハク",
+			"label": "無料: ﾌｧｲﾙ: AivisSpeech: コハク (wav 11MB)",
 			"scenes": [
 				[
 					{

@@ -17,12 +17,13 @@ const voiceDir = path.join(workDir, 'voice');
 
 // 声の表。id は各エンジンの声 ID（ノーマル）。先頭の声が、まだ何も選んでいないときの既定
 // label は選択欄の文言。権利表記（規約の書き方に近い「VOICEVOX: 名前」、AivisSpeech も同じ形の「AivisSpeech: 名前」。コロンの後に空白を入れるのは利用者の指示）もこの文言で示す
-// label の {size} は、その声の音声ファイルの合計の大きさ（例: wav 6MB）に置き換える
+// label の {size} は、その声の形式と音声ファイルの合計の大きさ（例: wav 6MB ／ wav➡mp3 1MB）に置き換える
+// 「ﾌｧｲﾙ」は半角。等幅で数えると「内蔵」と、「VOICEVOX」は「動的生成」と同じ幅になり、一覧で位置がそろう（利用者の指定。p261012-02）
 const VOICES = [
-	{ key: 'zundamon', engine: 'voicevox', id: 3, label: '無料: {size}: VOICEVOX: ずんだもん' },
-	{ key: 'metan', engine: 'voicevox', id: 2, label: '無料: {size}: VOICEVOX: 四国めたん' },
-	{ key: 'mao', engine: 'aivis', id: 888753760, label: '無料: {size}: AivisSpeech: まお' },
-	{ key: 'kohaku', engine: 'aivis', id: 1878365376, label: '無料: {size}: AivisSpeech: コハク' },
+	{ key: 'zundamon', engine: 'voicevox', id: 3, label: '無料: ﾌｧｲﾙ: VOICEVOX: ずんだもん ({size})' },
+	{ key: 'metan', engine: 'voicevox', id: 2, label: '無料: ﾌｧｲﾙ: VOICEVOX: 四国めたん ({size})' },
+	{ key: 'mao', engine: 'aivis', id: 888753760, label: '無料: ﾌｧｲﾙ: AivisSpeech: まお ({size})' },
+	{ key: 'kohaku', engine: 'aivis', id: 1878365376, label: '無料: ﾌｧｲﾙ: AivisSpeech: コハク ({size})' },
 ] as const;
 checkKeys(VOICES);
 // mp3 のビットレート。1 声 約 1 MB。利用者が聞いて問題なかった（p261012-02 の 72-A）

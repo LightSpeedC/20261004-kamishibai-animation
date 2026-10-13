@@ -71,15 +71,16 @@ const THREE_VOICES: Voice[] = [
 // 事前生成の声の表示名。tools/20_build/make-voice.ts の表と揃える（p261010-01）
 // 「wav 6MB」の大きさは音声を作り直すと変わるため、数字は問わない
 // 声ごとに mp3（wav から変換）、wav の順（p261012-02 の 76-A）
+// 「ﾌｧｲﾙ」は半角。等幅で数えると「内蔵」と、「VOICEVOX」は「動的生成」と同じ幅になり、一覧で位置がそろう（利用者の指定）
 const RECORDED_LABELS = [
-	/^無料: wav➡mp3 \d+MB: VOICEVOX: ずんだもん$/,
-	/^無料: wav \d+MB: VOICEVOX: ずんだもん$/,
-	/^無料: wav➡mp3 \d+MB: VOICEVOX: 四国めたん$/,
-	/^無料: wav \d+MB: VOICEVOX: 四国めたん$/,
-	/^無料: wav➡mp3 \d+MB: AivisSpeech: まお$/,
-	/^無料: wav \d+MB: AivisSpeech: まお$/,
-	/^無料: wav➡mp3 \d+MB: AivisSpeech: コハク$/,
-	/^無料: wav \d+MB: AivisSpeech: コハク$/,
+	/^無料: ﾌｧｲﾙ: VOICEVOX: ずんだもん \(wav➡mp3 \d+MB\)$/,
+	/^無料: ﾌｧｲﾙ: VOICEVOX: ずんだもん \(wav \d+MB\)$/,
+	/^無料: ﾌｧｲﾙ: VOICEVOX: 四国めたん \(wav➡mp3 \d+MB\)$/,
+	/^無料: ﾌｧｲﾙ: VOICEVOX: 四国めたん \(wav \d+MB\)$/,
+	/^無料: ﾌｧｲﾙ: AivisSpeech: まお \(wav➡mp3 \d+MB\)$/,
+	/^無料: ﾌｧｲﾙ: AivisSpeech: まお \(wav \d+MB\)$/,
+	/^無料: ﾌｧｲﾙ: AivisSpeech: コハク \(wav➡mp3 \d+MB\)$/,
+	/^無料: ﾌｧｲﾙ: AivisSpeech: コハク \(wav \d+MB\)$/,
 ];
 
 // 事前生成の音声が無い作品の状態にする（voice.js が window.VOICE を書き込めなくする）
@@ -477,13 +478,14 @@ test('権利表記の別ラベルは出さず、選んだ声の権利表記は�
 	const shown = () => select.evaluate((s: HTMLSelectElement) => s.selectedOptions[0].textContent);
 	await select.selectOption('r:zundamon:wav');
 	// 規約が示す「VOICEVOX:名前」に近い形で、コロンの後に空白を入れる。AivisSpeech も同じ形
-	expect(await shown()).toMatch(/VOICEVOX: ずんだもん$/);
+	// 形式と大きさは名前の後ろの括弧に置く（p261012-02）
+	expect(await shown()).toMatch(/VOICEVOX: ずんだもん \(wav \d+MB\)$/);
 	await select.selectOption('r:metan:wav');
-	expect(await shown()).toMatch(/VOICEVOX: 四国めたん$/);
+	expect(await shown()).toMatch(/VOICEVOX: 四国めたん \(wav \d+MB\)$/);
 	await select.selectOption('r:mao:wav');
-	expect(await shown()).toMatch(/AivisSpeech: まお$/);
+	expect(await shown()).toMatch(/AivisSpeech: まお \(wav \d+MB\)$/);
 	await select.selectOption('r:kohaku:wav');
-	expect(await shown()).toMatch(/AivisSpeech: コハク$/);
+	expect(await shown()).toMatch(/AivisSpeech: コハク \(wav \d+MB\)$/);
 	await expect(page.locator('.ks-credit')).toHaveCount(0);
 });
 
